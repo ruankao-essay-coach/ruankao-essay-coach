@@ -9,6 +9,11 @@ Use the bundled Node.js API client to keep confirmed candidate and project facts
 
 ## Configure
 
+Resolve `SKILL_DIR` to the absolute directory containing this `SKILL.md`
+before running bundled commands. In Claude Code, use
+`${CLAUDE_SKILL_DIR}`. In other agents, use the installed skill directory.
+Never resolve `scripts/` relative to the user's current project.
+
 The bundled client defaults to the hosted API. Require the License Token:
 
 ```bash
@@ -18,7 +23,8 @@ export RUANKAO_LICENSE_TOKEN="your-license-key"
 Set `RUANKAO_API_BASE_URL` only when overriding the default
 `https://api.bindvault.me/ruankao/api/v1`.
 
-Run `node scripts/ruankao_client.mjs license status` before the first protected request.
+Run `node "$SKILL_DIR/scripts/ruankao_client.mjs" license status` before the
+first protected request.
 
 ## Generate a complete essay
 
@@ -59,4 +65,4 @@ Read and follow [safety-boundaries.md](references/safety-boundaries.md). Refuse 
 
 ## Client
 
-Use `node scripts/ruankao_client.mjs --help` for commands. The client requires Node.js 18+ and stores the profile in `~/.ruankao/profile.json`, projects in `~/.ruankao/projects`, and the stable device ID in `~/.ruankao/device_id`. `RUANKAO_CONFIG_DIR` may override this directory. Local CRUD commands do not require the Server or License; protected analysis commands read the License Token from the environment and send only the structured data needed for that request.
+Use `node "$SKILL_DIR/scripts/ruankao_client.mjs" --help` for commands. The client requires Node.js 18+ and stores the profile in `~/.ruankao/profile.json`, projects in `~/.ruankao/projects`, and the stable device ID in `~/.ruankao/device_id`. `RUANKAO_CONFIG_DIR` may override this directory. Local CRUD commands do not require the Server or License; protected analysis commands read the License Token from the environment and send only the structured data needed for that request.

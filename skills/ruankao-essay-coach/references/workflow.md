@@ -10,7 +10,7 @@ When the profile is absent or incomplete, ask no more than three questions in
 one turn. Save confirmed answers with:
 
 ```bash
-node scripts/ruankao_client.mjs profile update candidate-profile.json
+node "$SKILL_DIR/scripts/ruankao_client.mjs" profile update candidate-profile.json
 ```
 
 Use `profile prepare` to obtain the next questions and completion percentage.
@@ -36,7 +36,7 @@ Require a reusable project profile containing:
 Create the profile:
 
 ```bash
-node scripts/ruankao_client.mjs project create project.json
+node "$SKILL_DIR/scripts/ruankao_client.mjs" project create project.json
 ```
 
 This writes a separate JSON file under the customer's local
@@ -45,7 +45,7 @@ This writes a separate JSON file under the customer's local
 Run preparation:
 
 ```bash
-node scripts/ruankao_client.mjs project prepare proj_xxx
+node "$SKILL_DIR/scripts/ruankao_client.mjs" project prepare proj_xxx
 ```
 
 Ask each returned question before continuing when `ready` is false.
@@ -66,7 +66,7 @@ Create a JSON request:
 Run:
 
 ```bash
-node scripts/ruankao_client.mjs essay generation-brief request.json
+node "$SKILL_DIR/scripts/ruankao_client.mjs" essay generation-brief request.json
 ```
 
 Generate the complete essay according to:
@@ -93,7 +93,7 @@ Write the generated essay into a JSON request:
 Run:
 
 ```bash
-node scripts/ruankao_client.mjs essay check check.json
+node "$SKILL_DIR/scripts/ruankao_client.mjs" essay check check.json
 ```
 
 Apply all high-severity repairs. Preserve the topic, project facts, complete structure, and target length while repairing.

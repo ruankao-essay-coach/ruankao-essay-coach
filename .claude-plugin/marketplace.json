@@ -1,0 +1,20 @@
+{
+  "name": "ruankao-essay-coach",
+  "owner": {
+    "name": "ruankao-essay-coach"
+  },
+  "metadata": {
+    "description": "Ruankao System Architect essay coaching Skill"
+  },
+  "plugins": [
+    {
+      "name": "ruankao-essay-coach",
+      "description": "Generate, optimize, and review Ruankao System Architect practice essays",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/ruankao-essay-coach"
+      ]
+    }
+  ]
+}
