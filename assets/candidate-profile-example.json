@@ -1,0 +1,29 @@
+{
+  "work_years": 10,
+  "primary_industry": "电子政务",
+  "current_role": "系统架构设计师",
+  "typical_team_size": 25,
+  "programming_languages": [
+    "Java",
+    "Python",
+    "SQL"
+  ],
+  "tech_stacks": [
+    "Spring Cloud",
+    "Redis",
+    "Kafka",
+    "PostgreSQL",
+    "Kubernetes"
+  ],
+  "project_types": [
+    "政务数据交换平台",
+    "统一身份认证平台",
+    "业务中台"
+  ],
+  "architecture_strengths": [
+    "微服务架构",
+    "高可用设计",
+    "性能优化",
+    "系统集成"
+  ]
+}
