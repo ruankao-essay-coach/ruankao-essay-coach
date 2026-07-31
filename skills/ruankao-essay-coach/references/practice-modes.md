@@ -17,7 +17,9 @@ rollout. Present a concise proposal and continue after confirmation.
   missing material and never add model-supplemented facts.
 - `reasonable_supplement`: Use confirmed facts as immutable anchors. Add
   plausible business context, implementation details, phase activities,
-  responsibilities, problems, measures, and modest results when needed.
+  responsibilities, problems, measures, modest results, and the minimum
+  background facts needed to explain why a new project was launched or why a
+  legacy system required refactoring.
 - `sample_project`: Build a coherent practice project and clearly identify it as
   a simulated setting outside the essay. Do not claim it is the user's real
   employment history.

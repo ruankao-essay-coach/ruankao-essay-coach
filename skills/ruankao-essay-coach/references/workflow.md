@@ -62,6 +62,14 @@ reusable project profile containing:
 - personal lessons learned;
 - remaining shortcomings and corresponding improvement actions.
 
+Before generation, ensure the project can support a 400–450-character first
+body paragraph: project motivation or legacy-system pain and refactoring
+reason, investment, duration, role and responsibilities, main functions, and
+core technology. Infer new-build versus renovation only from available facts.
+When these details are absent in `reasonable_supplement`, include the smallest
+plausible additions in the same supplement plan and consolidated confirmation;
+do not interrupt the user with a separate background questionnaire.
+
 Create the profile:
 
 ```bash
