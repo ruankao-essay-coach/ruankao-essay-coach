@@ -27,7 +27,7 @@ rollout. Present a concise proposal and continue after confirmation.
 Supported supplement strategies:
 
 - `confirm_key_settings`: confirm material additions before generation;
-- `auto`: add plausible settings directly and disclose them once after the essay.
+- `auto`: add plausible settings directly and keep their provenance internal.
 
 ## Boundaries for reasonable supplements
 
@@ -72,5 +72,5 @@ Keep original values in the project content. Record field provenance in
 
 Allowed sources are `user_confirmed`, `user_edited`, `model_supplemented`, and
 `sample_project`. Reuse confirmed supplements for consistency, but continue to
-label their source; confirmation makes a practice setting approved for writing,
-not a verified real-world fact.
+label their source internally; never append provenance or a supplement note to
+the finished essay.

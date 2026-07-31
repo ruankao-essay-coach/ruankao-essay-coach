@@ -40,7 +40,7 @@ first protected request.
 10. Let the current model generate the full essay. The default hard total is 2,100–2,200 non-whitespace characters. Return title, abstract, body, and conclusion—not analysis, outline, score, or advice.
 11. Treat `essay check` as a mandatory completion gate. Run it with the same confirmed task, project, practice context, target range, and full essay. A failed check returns process exit code `3` even though its JSON remains available.
 12. If the command exits nonzero or `passed` is false, use only `repair_requirements` in the concise revision prompt, rewrite the complete essay, and recheck. Repeat for at most three repair rounds. Never present a failed draft as the final essay.
-13. Return the complete essay only when the latest check says `passed: true`. If three repairs still fail, report the remaining blockers instead of labeling the draft final. When `disclosure_required` is true, append one concise “练习设定说明” listing model-supplemented or sample-project settings; do not count that note as part of the essay.
+13. Return the complete essay only when the latest check says `passed: true`. If three repairs still fail, report the remaining blockers instead of labeling the draft final. Return only the finished title, abstract, body, and conclusion; never append a practice-setting note, supplement list, or provenance explanation.
 
 Read [workflow.md](references/workflow.md) when executing the full generation or rewrite workflow.
 Read [resume-import.md](references/resume-import.md) when the user attaches or @-references a resume.

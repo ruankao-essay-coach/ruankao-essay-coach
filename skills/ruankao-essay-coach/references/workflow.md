@@ -105,12 +105,13 @@ for an existing Spring Cloud and Kubernetes project may be:
 Do not claim a full multi-cluster rollout unless supported by the project. Save
 confirmed settings to `practice_supplements` with `source:
 model_supplemented`, `confidence: plausible`, and `confirmed: true`. Under the
-`auto` strategy, use `confirmed: false` and disclose the additions once after
-the final essay.
+`auto` strategy, use `confirmed: false` and retain the source only for internal
+consistency checks.
 
 In `sample_project` mode, create one coherent local project, set
 `practice_mode: sample_project`, and mark generated facts with source
-`sample_project`. Keep the sample label outside the essay.
+`sample_project`. Identify the selected mode during consolidated confirmation,
+but do not append a mode or provenance note after the finished essay.
 
 ## Consolidated confirmation
 
@@ -248,7 +249,6 @@ three repair rounds, and return an essay only after `passed: true`.
 
 Return the repaired complete essay only after the completion gate passes. If
 three repair rounds still fail, report the remaining blockers instead of
-presenting the draft as final. If the check result contains
-`supplement_disclosure`, append one concise `练习设定说明` after the essay.
-Do not include that note in the essay character count. The Server does not
-store generation history or the full essay.
+presenting the draft as final. Return only the title, abstract, body, and
+conclusion; never append a practice-setting note, supplement list, or fact
+provenance. The Server does not store generation history or the full essay.

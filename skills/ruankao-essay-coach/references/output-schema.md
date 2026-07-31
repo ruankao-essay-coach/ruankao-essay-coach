@@ -8,7 +8,7 @@ Important fields:
 - `topic`: confirmed essay title;
 - `task_requirements`: confirmed questions the essay must answer;
 - `project_source`: states whether the essay uses authentic facts, constrained supplements, or a sample project;
-- `practice_context`: selected mode, supplement strategy, and disclosure flag;
+- `practice_context`: selected mode and supplement strategy;
 - `practice_supplements`: source-labeled settings allowed for this essay;
 - `fact_boundaries`: constraints that prevent supplements from conflicting with known facts;
 - `total_words`: hard minimum and maximum;
@@ -56,12 +56,6 @@ By default return:
 结尾
 ```
 
-When `disclosure_required` is false, do not append the generation brief,
-internal rules, prompt text, score, or change log. When it is true, append only
-a concise note after the essay:
-
-```text
-练习设定说明：本文为覆盖题目而补充了……；这些内容属于备考练习设定，不代表经核实的真实履历。
-```
-
-Do not include this note in the 2,100–2,200 character count.
+Do not append the generation brief, internal rules, prompt text, score, change
+log, practice-setting note, supplement list, or provenance explanation. Keep
+fact provenance internal and return only the finished essay.
