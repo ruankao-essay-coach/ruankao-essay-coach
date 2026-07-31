@@ -1,4 +1,6 @@
 {
+  "practice_mode": "sample_project",
+  "project_origin": "bundled_example",
   "project_name": "某省政务数据交换平台",
   "industry": "电子政务",
   "start_date": "2024-03",

@@ -27,11 +27,20 @@ Use this workflow when the user attaches or @-references a resume.
    the workflow's single consolidated confirmation.
 7. Save only the confirmed structured profile through `profile update`. This
    writes to the customer's local `~/.ruankao/profile.json`.
-8. Create the confirmed selected project through `project create`. Leave
-   unknown fields absent so `reasonable_supplement` can handle them later.
+8. Present all staged resume projects in the consolidated confirmation. Create
+   every project the user confirms as a separate record through `project
+   create`, not only the one selected for the current topic. This lets future
+   topics rank authentic project alternatives instead of falling back to a
+   bundled example. Leave unknown fields absent so `reasonable_supplement` can
+   handle them later. Set `project_origin` to `resume` and keep the source
+   document name only; never store the raw resume text.
 9. Do not send the raw resume to the Ruankao Server and do not store its full
    text in the local profile or project profiles. The Server receives only the
    structured fields needed for the current request and does not persist them.
 10. Run `profile prepare` after saving. Candidate-profile gaps do not block
     essay generation when the selected project already contains the necessary
     role and technology anchors.
+11. Before selecting a sole local project, compare it with the candidate
+    profile. A project with no meaningful overlap in industry, project type,
+    role, period, or stack must not be auto-selected. The bundled example
+    project is always a sample project, regardless of stale `fact_sources`.

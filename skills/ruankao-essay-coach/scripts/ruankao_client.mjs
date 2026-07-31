@@ -19,7 +19,12 @@ function usage() {
   ruankao_client.mjs project prepare <project-id> [authentic|reasonable_supplement|sample_project]
   ruankao_client.mjs project update <project-id> <json-file>
   ruankao_client.mjs topic analyze <json-file>
-  ruankao_client.mjs essay generation-brief|optimization-brief|check|review <json-file>`;
+  ruankao_client.mjs essay generation-brief|optimization-brief|check|review <json-file>
+
+Exit codes for "essay check":
+  0  规则闸门通过且字数在范围内；仍需按 semantic_review 完成语义自查
+  3  仍有内容问题，按 repair_requirements 重写全文
+  4  内容问题已清空，只剩字数越界，按 length_adjustment.instructions 调整篇幅`;
 }
 
 function chmodIfPossible(targetPath, mode) {
@@ -77,6 +82,7 @@ function atomicWriteJson(filePath, value) {
 
 const PROJECT_METADATA_FIELDS = new Set([
   "fact_sources", "practice_supplements", "practice_mode", "supplement_strategy",
+  "project_origin", "source_document_name",
 ]);
 
 function applyFactSources(content, defaultSource, changedFields = Object.keys(content)) {
@@ -301,7 +307,7 @@ class Client {
         "X-Device-ID": deviceId(),
         "X-Request-ID": `req_${randomUUID().replaceAll("-", "")}`,
         "Content-Type": "application/json",
-        "User-Agent": "ruankao-essay-coach/0.2.8",
+        "User-Agent": "ruankao-essay-coach/0.2.9",
       },
       body: payload === undefined ? undefined : JSON.stringify(payload),
     });
@@ -404,7 +410,10 @@ async function execute(client, argv) {
 
 export function resultExitCode(argv, result) {
   const [group, action] = argv;
-  return group === "essay" && action === "check" && result?.passed === false ? 3 : 0;
+  if (group !== "essay" || action !== "check") return 0;
+  if (result?.passed === false) return 3;
+  if (result?.length_adjustment && result.length_adjustment.in_range === false) return 4;
+  return 0;
 }
 
 async function main() {

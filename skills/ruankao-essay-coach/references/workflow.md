@@ -11,7 +11,11 @@ question. Also inspect attached or @-referenced resumes. Reuse confirmed local
 data; when a resume is present, follow `resume-import.md` to stage a candidate
 profile and separate project candidates without saving them yet.
 
-If one project exists, select it automatically. If several local or
+If one project exists, select it automatically only after checking that its
+industry, project type, period, role, and stack plausibly match the candidate
+profile. Never auto-select the bundled example project or a sole project with
+no meaningful profile overlap. Recover projects from an available resume
+first. If several local or
 resume-derived projects exist, rank them by relevance to the pending task and
 recommend the strongest by name. Never merge projects and never ask the user
 for a `proj_xxx` identifier.
@@ -42,9 +46,14 @@ requested strict authenticity, automatic completion, or a sample project.
 
 For the default mode, require only these anchors before continuing:
 
-- project name or type and approximate period;
-- user role and approximate team size;
+- project name or type;
+- user role;
 - known architecture or primary technology stack.
+
+Use a resume role timeline and confirmed typical team size as supporting
+context, but do not silently convert them into exact project dates or team
+size. When project period or team size is absent, place the smallest plausible
+value in the consolidated supplement plan instead of rejecting the project.
 
 Treat other missing fields as supplementable. In `authentic` mode, require a
 reusable project profile containing:
@@ -151,7 +160,7 @@ Create a JSON request:
     "source_type": "exam_prompt",
     "confidence": "high",
     "status": "confirmed",
-    "target_words": {"min": 2100, "max": 2200}
+    "target_words": {"min": 2000, "max": 2500}
   },
   "project_profile_id": "proj_xxx",
   "practice_context": {
@@ -184,6 +193,8 @@ Generate the complete essay according to:
 
 - confirmed `task_requirements`;
 - the selected local project profile;
+- `project_anchors`, which must remain the single factual spine from abstract
+  through conclusion;
 - `practice_context`, `practice_supplements`, and `fact_boundaries`;
 - `total_words`;
 - the concise `structure` and `writing_requirements`.
@@ -194,7 +205,16 @@ failure checklists.
 
 Do not expose the raw generation brief in the final answer.
 
-## Consistency repair
+## Completion gates
+
+Completion has two gates and one length pass, in this order. The Server judges
+only the first. Never present a draft as final because one of them passed.
+
+| Stage | Judged by | Signal | Rounds |
+| --- | --- | --- | --- |
+| Rule gate | Server | `passed`, exit `3` | at most 3 |
+| Semantic gate | Current model | `semantic_review` verdicts | at most 3 |
+| Length pass | Server measures, model rewrites | `length_adjustment`, exit `4` | 1, at the end |
 
 Write the generated essay into a JSON request:
 
@@ -212,7 +232,7 @@ Write the generated essay into a JSON request:
     "source_type": "exam_prompt",
     "confidence": "high",
     "status": "confirmed",
-    "target_words": {"min": 2100, "max": 2200}
+    "target_words": {"min": 2000, "max": 2500}
   },
   "project_profile_id": "proj_xxx",
   "practice_context": {
@@ -238,17 +258,56 @@ Run:
 node "$SKILL_DIR/scripts/ruankao_client.mjs" essay check check.json
 ```
 
-The Server returns at most three high-priority and three medium-priority issues.
-Use only `repair_requirements` in the revision prompt. Rewrite the complete
-essay while preserving its unaffected structure, facts, and natural style. The
-client exits with code `3` when `passed` is false; treat that as an unfinished
-delivery, not a successful tool call. Recheck after each rewrite, for at most
-three repair rounds, and return an essay only after `passed: true`.
+### Rule gate
+
+`issues` holds at most three high-priority and three medium-priority objective
+findings: project-fact conflicts, key knowledge for a matched topic, the
+mandatory abstract, background, tradeoff, conclusion and transition techniques,
+personal work, and exactly repeated sentences. Use only `repair_requirements` in
+the revision prompt and rewrite the complete essay while preserving its
+unaffected structure, facts, and natural style. Exit code `3` means unfinished.
+Recheck after each rewrite, for at most three repair rounds.
+
+The Server does not judge requirement coverage, topic relevance, empty padding,
+or the theory ratio. A passing rule gate is not a passing essay.
+
+### Semantic gate
+
+After `passed` is true, take `semantic_review` from the same response and apply
+the self-review prompt in `essay-task-and-prompts.md`. It contains one item per
+confirmed task requirement plus `topic_relevance`, `substance`, and
+`theory_ratio`.
+
+Judge every item as `satisfied`, `partial`, or `missing`, and quote a verbatim
+sentence from the essay as evidence. An item without quotable evidence is
+`missing`, never `satisfied`. A requirement restated in the abstract is not
+evidence that the essay answered it.
+
+For every item whose verdict is in `blocking_verdicts`, use that item's
+`repair_template` as a repair requirement, rewrite the complete essay, then
+rerun the rule gate and this gate. At most three semantic rounds.
+
+### Length pass
+
+Length never consumes a repair round. Handle it once, after both gates pass:
+apply `length_adjustment.instructions` with the length adjustment prompt, then
+rerun `essay check` to confirm `in_range` is true and no content issue
+reappeared. Exit code `4` means only the length is still off.
 
 ## Completion
 
-Return the repaired complete essay only after the completion gate passes. If
-three repair rounds still fail, report the remaining blockers instead of
-presenting the draft as final. Return only the title, abstract, body, and
-conclusion; never append a practice-setting note, supplement list, or fact
-provenance. The Server does not store generation history or the full essay.
+Return the complete essay only when the rule gate passes, every semantic item is
+`satisfied`, and the length is in range. If the rounds run out, report the
+remaining blockers instead of presenting the draft as final. Return only the
+title, abstract, body, and conclusion; never append a practice-setting note,
+supplement list, or fact provenance. The Server does not store generation
+history or the full essay.
+
+## Optional score
+
+Only when the user explicitly asks for a score, run `essay review`. It returns
+the seven dimensions, the objective findings already mapped to the dimension
+each one affects, the semantic rubric, and `scoring_instructions`. It returns no
+scores. Complete the semantic review first, then assign each dimension a score
+with evidence, keeping every deduction on the dimension it actually belongs to.
+Present the result as training feedback, never as an official result.
