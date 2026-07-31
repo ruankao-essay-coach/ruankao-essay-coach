@@ -301,7 +301,7 @@ class Client {
         "X-Device-ID": deviceId(),
         "X-Request-ID": `req_${randomUUID().replaceAll("-", "")}`,
         "Content-Type": "application/json",
-        "User-Agent": "ruankao-essay-coach/0.2.4",
+        "User-Agent": "ruankao-essay-coach/0.2.5",
       },
       body: payload === undefined ? undefined : JSON.stringify(payload),
     });
