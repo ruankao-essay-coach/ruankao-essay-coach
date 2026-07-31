@@ -6,7 +6,7 @@ Use the current model to extract an essay task from the user's original words.
 Accept a complete exam prompt, title only, natural-language request, project only,
 or an already structured task.
 
-Create this pending object before asking for confirmation:
+Create this pending object before background discovery:
 
 ```json
 {
@@ -29,19 +29,27 @@ Supported `source_type` values are `exam_prompt`, `title_only`,
 `pending_confirmation`, `confirmed`, and `rejected`.
 
 Preserve explicit structural requirements and other limits from the original
-input in `structure_requirements` and `other_constraints`. Show the topic, each
-requirement, target range, and those explicit restrictions to the user. Ask for confirmation or correction. Never infer
-confirmation from silence.
+input in `structure_requirements` and `other_constraints`. Keep the task
+`pending_confirmation` while reading the local candidate profile, local project
+list, and any attached or @-referenced resume. Do not ask the user to confirm
+the task or provide project background before this discovery finishes.
+
+After selecting a project and preparing any necessary supplement plan, show one
+consolidated confirmation containing the topic, requirements, target range,
+selected project name and source, and key proposed supplements. Ask for
+confirmation or correction once. Never infer confirmation from silence.
 
 For `title_only`, label confidence as `medium` and say:
 
 > 这是根据标题推测的写作要求。如有完整题目原文，应优先粘贴原文。
 
-When the user provides only a project, suggest two or three suitable essay
-titles, wait for a selection, derive the requirements, and ask for confirmation.
-Never silently choose a title and generate an essay.
+When the user provides only a project, first inspect all discovered project
+material, then suggest two or three suitable essay titles. Include the title
+choice in the consolidated confirmation. Never silently choose a title and
+generate an essay.
 
-Only after explicit confirmation set `status` to `confirmed`.
+Only after the consolidated confirmation set `status` to `confirmed` and save
+staged resume-derived data.
 
 ## First-generation prompt
 

@@ -1,38 +1,40 @@
 # Full workflow
 
-## Confirmed essay task
+## Discover before asking
 
-Extract the task from the user's original input before loading project material.
-Show the pending topic, task requirements, target range, and explicit limits to
-the user. Continue only after explicit confirmation.
+Extract a pending task from the user's original input, but do not show a
+confirmation yet. Use the pending topic and requirements to evaluate available
+project material.
 
-If the input is title-only, warn that the requirements are inferred. If the
-input contains only a project, suggest two or three titles and wait for the
-user's choice. Never generate from a pending, rejected, or silently inferred
-task.
+Immediately call `profile get` and `project list` before asking any background
+question. Also inspect attached or @-referenced resumes. Reuse confirmed local
+data; when a resume is present, follow `resume-import.md` to stage a candidate
+profile and separate project candidates without saving them yet.
+
+If one project exists, select it automatically. If several local or
+resume-derived projects exist, rank them by relevance to the pending task and
+recommend the strongest by name. Never merge projects and never ask the user
+for a `proj_xxx` identifier.
+
+Only when local data and the resume both lack the minimum project anchors may
+the Skill ask for project background. Ask at most three anchor questions in one
+turn, or offer a clearly labeled sample project.
 
 ## Candidate profile
 
-Call `profile get` before asking background questions. It reads the customer's
-local `~/.ruankao/profile.json`. Reuse the confirmed profile for every later
-topic.
-
-When the profile is absent or incomplete, ask no more than three questions in
-one turn. Save confirmed answers with:
+The profile describes the person; project records describe individual
+projects. Keep them separate. Stage resume-derived values until consolidated
+confirmation. Save confirmed profile values with:
 
 ```bash
 node "$SKILL_DIR/scripts/ruankao_client.mjs" profile update candidate-profile.json
 ```
 
-Use `profile prepare` to obtain the next questions and completion percentage.
-Keep candidate background separate from project facts.
+Run `profile prepare` after saving. An incomplete candidate profile does not
+block generation when the selected project already supplies role and technical
+anchors.
 
 ## Project profile
-
-Run `project list` before asking the customer about projects. If one project
-exists, use it automatically. If several exist, ask the customer to choose by
-project name. Keep `proj_xxx` identifiers internal and never require the
-customer to know, copy, or enter one.
 
 Select the practice mode from `practice-modes.md`. Default to
 `reasonable_supplement`; do not ask the user to choose a mode unless they have
@@ -75,8 +77,9 @@ Run preparation with the selected mode:
 node "$SKILL_DIR/scripts/ruankao_client.mjs" project prepare proj_xxx reasonable_supplement
 ```
 
-Ask only returned `questions` when `ready` is false. Do not ask about every
-`supplementable_field`. Instead, compare the confirmed task with the known
+Ask only returned `questions` when `ready` is false and no discovered source
+already answers them. Do not ask about every `supplementable_field`. Instead,
+compare the pending task with the known
 project and create the smallest coherent supplement plan needed for the essay.
 
 ## Practice supplement plan
@@ -100,6 +103,25 @@ the final essay.
 In `sample_project` mode, create one coherent local project, set
 `practice_mode: sample_project`, and mark generated facts with source
 `sample_project`. Keep the sample label outside the essay.
+
+## Consolidated confirmation
+
+After discovery and gap analysis, show one confirmation containing:
+
+- pending topic, task requirements, explicit limits, and target length;
+- selected project name and whether it came from local storage, the resume, or
+  a sample-project proposal;
+- the material already supported by that project;
+- only the key model-supplemented settings that require approval.
+
+Do not ask separate questions about task mode or project background when those
+answers were discovered. For a title-only task, include the inference warning.
+If several projects remain equally suitable, include a short project-name
+choice in this same confirmation.
+
+After explicit confirmation, set the task status to `confirmed`, mark approved
+supplements confirmed, then save staged profile and project data. Never call a
+generation endpoint with a pending or rejected task.
 
 ## Generation brief
 
