@@ -5,26 +5,26 @@
 Important fields:
 
 - `generation_id`: ephemeral identifier for this response; it is not stored;
-- `required_answers`: all topic questions that the essay must answer;
-- `project_facts`: immutable facts supplied by the user;
-- `sections`: complete essay structure and target lengths;
-- `generation_requirements`: minimal instructions needed to produce the essay;
-- `output_requirement.return_full_essay`: must be true.
+- `topic`: confirmed essay title;
+- `task_requirements`: confirmed questions the essay must answer;
+- `project_source`: states that the selected confirmed project is used;
+- `total_words`: hard minimum and maximum;
+- `structure`: five concise section targets and focus lists;
+- `writing_requirements`: a short list of first-generation constraints.
 
 The response intentionally excludes internal rule, template, outline, strategy,
 scoring, and rule-version identifiers.
 
-The default complete-essay structure is approximately 2,200 Chinese characters:
+The default hard range is 2,100–2,200 non-whitespace characters. The default
+section targets are 300, 400, 200, 1,000, and 300. Treat them as the concise
+exam structure supplied by the Server; do not add sentence-level instructions,
+scoring rules, keyword density, fixed transitions, or internal rule metadata.
 
-- abstract: 300;
-- project background: 400;
-- direct response to question two: 200;
-- detailed arguments and project practice: 1,000;
-- conclusion: 300.
+## Check result
 
-Use natural transitions between all five parts. Connect detailed arguments by
-meaningful cause, progression, contrast, or consequence instead of repeating
-rigid list markers.
+`essay check` returns `passed`, up to three high-priority issues, up to three
+medium-priority issues, and matching `repair_requirements`. Use only those
+repair requirements in the second-round full rewrite.
 
 ## Optimization types
 

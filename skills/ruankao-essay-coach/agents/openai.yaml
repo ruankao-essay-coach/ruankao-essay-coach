@@ -1,4 +1,4 @@
 interface:
   display_name: "软考论文教练"
-  short_description: "基于真实项目素材生成、改写和优化完整软考高级练习论文"
-  default_prompt: "Use $ruankao-essay-coach to generate a complete practice essay from my authentic project experience."
+  short_description: "确认论文任务，并基于真实项目生成和优化完整软考练习论文"
+  default_prompt: "Use $ruankao-essay-coach to extract and confirm my essay task, then generate a complete practice essay from my authentic project experience."

@@ -1,6 +1,6 @@
 ---
 name: ruankao-essay-coach
-description: Generate, rewrite, optimize, and review complete Chinese practice essays for the Ruankao system architect examination using an enduring candidate profile and authentic project experience. Use when the user wants to import an attached or @-referenced resume, build or update a candidate profile, generate a full practice essay, organize project materials, adapt an essay to a topic, improve an essay, check consistency, or request a training score. Do not use for a live examination, fabricated personal experience, impersonation, or guaranteed-pass claims.
+description: Extract and confirm essay tasks, then generate, rewrite, optimize, and review complete Chinese practice essays for the Ruankao system architect examination using an enduring candidate profile and authentic project experience. Use when the user provides a complete exam prompt, title, natural-language writing request, project background, attached or @-referenced resume, existing essay, or asks for project organization, consistency checks, or an optional training score. Do not use for a live examination, fabricated personal experience, impersonation, or guaranteed-pass claims.
 ---
 
 # Ruankao Essay Coach
@@ -29,33 +29,30 @@ first protected request.
 ## Generate a complete essay
 
 1. Confirm the request is for practice, not a live examination.
-2. Run `profile get`. This reads `~/.ruankao/profile.json`. Reuse an existing confirmed candidate profile without asking the same background questions again.
-3. If no complete profile exists, first look for an attached or @-referenced resume. Read it in the current model context, extract only the allowed structured profile fields, summarize them for confirmation, then save them locally with `profile update`. Never upload or persist the raw resume.
-4. Ask at most three conversational follow-up questions from `profile prepare`. Allow the user to answer approximately, skip, or correct extracted information.
-5. Obtain the essay topic and select one authentic project profile. Never merge facts from different projects.
-6. Create or select the locally stored project profile through the client, then run `project prepare`.
-7. Ask at most three missing project questions per turn. Do not invent dates, scale, role, problems, measures, results, customer feedback, or shortcomings.
-8. Run `topic analyze`, then `essay generation-brief`.
-9. Generate the complete Chinese essay from the returned brief.
-10. Unless the user specifies another length, follow the returned 2,200-character structure: abstract 300, background 400, response to question two 200, detailed arguments 1,000, and conclusion 300.
-11. Connect the sections and arguments with natural cause, progression, contrast, or summary transitions. Do not present them as mechanically joined independent answers.
-12. Include the title, abstract, complete body, and conclusion. Cover every `required_answers` item and preserve every `project_facts` value.
-13. Run `essay check` on the generated text.
-14. Apply the returned `repair_instructions`, then recheck when high-severity issues existed.
-15. Return only the final complete essay unless the user asks for analysis or scoring.
+2. Read [essay-task-and-prompts.md](references/essay-task-and-prompts.md). Use the current model to extract an `essay_task` from the user's original input.
+3. Show the extracted topic, task requirements, length, and explicit restrictions to the user. Do not continue until the user confirms or corrects them. A title-only extraction remains `pending_confirmation`; when no title exists, suggest two or three suitable titles and wait for a choice.
+4. After explicit confirmation, set the task status to `confirmed`. The Server rejects every other status with `TASK_NOT_CONFIRMED`.
+5. Run `profile get` and reuse a confirmed local candidate profile. When absent, import an attached or @-referenced resume as described in [resume-import.md](references/resume-import.md), or ask at most three questions per turn.
+6. Run `project list`. Select the only project automatically, or ask the user to choose by project name when several exist. Keep project IDs internal. If none exists, create an authentic project profile. Never merge projects or invent facts.
+7. Run `project prepare` and resolve missing material with at most three questions per turn.
+8. Send the confirmed `essay_task` and selected project to `essay generation-brief`. Use the concise first-generation prompt from the reference file with the returned brief and local project profile.
+9. Let the current model generate the full essay. The default hard total is 2,100–2,200 non-whitespace characters. Return title, abstract, body, and conclusion—not analysis, outline, score, or advice.
+10. Run `essay check` with the same confirmed task, project, target range, and full essay.
+11. If `passed` is false, use only `repair_requirements` in the concise revision prompt. Rewrite the complete essay without rerunning all generation rules, then recheck.
+12. Return only the final complete essay unless the user explicitly requests diagnosis or scoring.
 
 Read [workflow.md](references/workflow.md) when executing the full generation or rewrite workflow.
 Read [resume-import.md](references/resume-import.md) when the user attaches or @-references a resume.
 
 ## Optimize an existing essay
 
-Call `essay optimization-brief` with the project, topic, complete essay, optimization type, and target length. Rewrite the complete essay using the returned strategy. Never silently change confirmed project facts.
+Require a confirmed `essay_task`, then call `essay optimization-brief` with the project, complete essay, and optimization type. Rewrite the complete essay using only the returned strategy. Never silently change confirmed task requirements or project facts.
 
 Supported optimization types are documented in [output-schema.md](references/output-schema.md).
 
 ## Check or review
 
-- Use `essay check` for factual conflicts, missing topic coverage, and theory ratio.
+- Use `essay check` for confirmed task coverage, key knowledge, project use and consistency, personal work, practice depth, length, relevance, and obvious repetition.
 - Use `essay review` only when the user explicitly requests a score or diagnosis.
 - Describe scores as training feedback, never as an official result.
 
