@@ -34,7 +34,18 @@ exists, use it automatically. If several exist, ask the customer to choose by
 project name. Keep `proj_xxx` identifiers internal and never require the
 customer to know, copy, or enter one.
 
-Require a reusable project profile containing:
+Select the practice mode from `practice-modes.md`. Default to
+`reasonable_supplement`; do not ask the user to choose a mode unless they have
+requested strict authenticity, automatic completion, or a sample project.
+
+For the default mode, require only these anchors before continuing:
+
+- project name or type and approximate period;
+- user role and approximate team size;
+- known architecture or primary technology stack.
+
+Treat other missing fields as supplementable. In `authentic` mode, require a
+reusable project profile containing:
 
 - project name, industry, start and end date;
 - budget and team size;
@@ -43,7 +54,7 @@ Require a reusable project profile containing:
 - architecture and quality attributes;
 - at least two authentic problems;
 - measures corresponding to those problems;
-- at least one quantified result.
+- at least one quantified result;
 - launch and current operation status;
 - authentic customer or user feedback;
 - personal lessons learned;
@@ -58,13 +69,37 @@ node "$SKILL_DIR/scripts/ruankao_client.mjs" project create project.json
 This writes a separate JSON file under the customer's local
 `~/.ruankao/projects` directory.
 
-Run preparation:
+Run preparation with the selected mode:
 
 ```bash
-node "$SKILL_DIR/scripts/ruankao_client.mjs" project prepare proj_xxx
+node "$SKILL_DIR/scripts/ruankao_client.mjs" project prepare proj_xxx reasonable_supplement
 ```
 
-Ask each returned question before continuing when `ready` is false.
+Ask only returned `questions` when `ready` is false. Do not ask about every
+`supplementable_field`. Instead, compare the confirmed task with the known
+project and create the smallest coherent supplement plan needed for the essay.
+
+## Practice supplement plan
+
+In `reasonable_supplement` mode, preserve user-confirmed facts and propose
+topic-specific additions. Confirm only material settings. A service-mesh plan
+for an existing Spring Cloud and Kubernetes project may be:
+
+1. add a late-stage cloud-native governance pilot;
+2. pilot Istio in two non-core domains;
+3. use traffic governance, canary release, resilience, and observability;
+4. expand gradually after validation;
+5. assign the user selection, pilot design, and rollout-review work.
+
+Do not claim a full multi-cluster rollout unless supported by the project. Save
+confirmed settings to `practice_supplements` with `source:
+model_supplemented`, `confidence: plausible`, and `confirmed: true`. Under the
+`auto` strategy, use `confirmed: false` and disclose the additions once after
+the final essay.
+
+In `sample_project` mode, create one coherent local project, set
+`practice_mode: sample_project`, and mark generated facts with source
+`sample_project`. Keep the sample label outside the essay.
 
 ## Generation brief
 
@@ -87,7 +122,20 @@ Create a JSON request:
     "status": "confirmed",
     "target_words": {"min": 2100, "max": 2200}
   },
-  "project_profile_id": "proj_xxx"
+  "project_profile_id": "proj_xxx",
+  "practice_context": {
+    "mode": "reasonable_supplement",
+    "supplement_strategy": "confirm_key_settings",
+    "supplements": [
+      {
+        "field": "service_mesh_pilot",
+        "value": "在两个非核心业务域试点 Istio，验证流量治理、灰度发布和可观测性",
+        "source": "model_supplemented",
+        "confidence": "plausible",
+        "confirmed": true
+      }
+    ]
+  }
 }
 ```
 
@@ -105,6 +153,7 @@ Generate the complete essay according to:
 
 - confirmed `task_requirements`;
 - the selected local project profile;
+- `practice_context`, `practice_supplements`, and `fact_boundaries`;
 - `total_words`;
 - the concise `structure` and `writing_requirements`.
 
@@ -135,6 +184,19 @@ Write the generated essay into a JSON request:
     "target_words": {"min": 2100, "max": 2200}
   },
   "project_profile_id": "proj_xxx",
+  "practice_context": {
+    "mode": "reasonable_supplement",
+    "supplement_strategy": "confirm_key_settings",
+    "supplements": [
+      {
+        "field": "service_mesh_pilot",
+        "value": "在两个非核心业务域试点 Istio，验证流量治理、灰度发布和可观测性",
+        "source": "model_supplemented",
+        "confidence": "plausible",
+        "confirmed": true
+      }
+    ]
+  },
   "essay": "完整论文正文"
 }
 ```
@@ -151,5 +213,7 @@ essay while preserving its unaffected structure, facts, and natural style.
 
 ## Completion
 
-Return the repaired complete essay. The Server does not store generation
-history or the full essay.
+Return the repaired complete essay. If the check result contains
+`supplement_disclosure`, append one concise `练习设定说明` after the essay.
+Do not include that note in the essay character count. The Server does not
+store generation history or the full essay.

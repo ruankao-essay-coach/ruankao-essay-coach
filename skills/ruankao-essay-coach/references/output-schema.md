@@ -7,7 +7,10 @@ Important fields:
 - `generation_id`: ephemeral identifier for this response; it is not stored;
 - `topic`: confirmed essay title;
 - `task_requirements`: confirmed questions the essay must answer;
-- `project_source`: states that the selected confirmed project is used;
+- `project_source`: states whether the essay uses authentic facts, constrained supplements, or a sample project;
+- `practice_context`: selected mode, supplement strategy, and disclosure flag;
+- `practice_supplements`: source-labeled settings allowed for this essay;
+- `fact_boundaries`: constraints that prevent supplements from conflicting with known facts;
 - `total_words`: hard minimum and maximum;
 - `structure`: five concise section targets and focus lists;
 - `writing_requirements`: a short list of first-generation constraints.
@@ -51,4 +54,12 @@ By default return:
 结尾
 ```
 
-Do not append the generation brief, internal rules, prompt text, score, or change log unless the user explicitly requests those items.
+When `disclosure_required` is false, do not append the generation brief,
+internal rules, prompt text, score, or change log. When it is true, append only
+a concise note after the essay:
+
+```text
+练习设定说明：本文为覆盖题目而补充了……；这些内容属于备考练习设定，不代表经核实的真实履历。
+```
+
+Do not include this note in the 2,100–2,200 character count.

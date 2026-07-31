@@ -14,7 +14,8 @@ function usage() {
   ruankao_client.mjs profile update <json-file>
   ruankao_client.mjs project create <json-file>
   ruankao_client.mjs project list
-  ruankao_client.mjs project get|delete|prepare|check <project-id>
+  ruankao_client.mjs project get|delete|check <project-id>
+  ruankao_client.mjs project prepare <project-id> [authentic|reasonable_supplement|sample_project]
   ruankao_client.mjs project update <project-id> <json-file>
   ruankao_client.mjs topic analyze <json-file>
   ruankao_client.mjs essay generation-brief|optimization-brief|check|review <json-file>`;
@@ -73,6 +74,26 @@ function atomicWriteJson(filePath, value) {
   fs.renameSync(temporary, filePath);
 }
 
+const PROJECT_METADATA_FIELDS = new Set([
+  "fact_sources", "practice_supplements", "practice_mode", "supplement_strategy",
+]);
+
+function applyFactSources(content, defaultSource, changedFields = Object.keys(content)) {
+  const existing = content.fact_sources && typeof content.fact_sources === "object" && !Array.isArray(content.fact_sources)
+    ? structuredClone(content.fact_sources)
+    : {};
+  for (const field of changedFields) {
+    if (PROJECT_METADATA_FIELDS.has(field)) continue;
+    if (!existing[field]) {
+      existing[field] = {
+        source: defaultSource,
+        confirmed: ["user_confirmed", "user_edited"].includes(defaultSource),
+      };
+    }
+  }
+  return { ...content, fact_sources: existing };
+}
+
 class LocalStore {
   constructor(root = undefined) {
     this.root = root || configDir();
@@ -91,6 +112,19 @@ class LocalStore {
       throw new Error(`本地数据文件格式错误：${filePath}`);
     }
     return value;
+  }
+
+  upgradeProject(record, filePath) {
+    const content = record.content && typeof record.content === "object" && !Array.isArray(record.content)
+      ? record.content
+      : {};
+    const defaultSource = content.practice_mode === "sample_project" ? "sample_project" : "user_confirmed";
+    const upgradedContent = applyFactSources(content, defaultSource);
+    if (JSON.stringify(upgradedContent.fact_sources) !== JSON.stringify(content.fact_sources || {})) {
+      record.content = upgradedContent;
+      atomicWriteJson(filePath, record);
+    }
+    return record;
   }
 
   getProfile() {
@@ -145,6 +179,8 @@ class LocalStore {
     if (!name) {
       throw new Error("项目名称不能为空");
     }
+    const defaultSource = content.practice_mode === "sample_project" ? "sample_project" : "user_confirmed";
+    content = applyFactSources(content, defaultSource);
     const timestamp = nowIso();
     const record = {
       id: projectId,
@@ -162,7 +198,10 @@ class LocalStore {
     const projects = fs
       .readdirSync(this.projectsDir, { withFileTypes: true })
       .filter((entry) => entry.isFile() && /^proj_.*\.json$/.test(entry.name))
-      .map((entry) => this.read(path.join(this.projectsDir, entry.name)))
+      .map((entry) => {
+        const filePath = path.join(this.projectsDir, entry.name);
+        return this.upgradeProject(this.read(filePath), filePath);
+      })
       .sort((a, b) => String(b.updated_at ?? "").localeCompare(String(a.updated_at ?? "")));
     return { projects };
   }
@@ -172,7 +211,7 @@ class LocalStore {
     if (!fs.existsSync(filePath)) {
       throw new Error(`未找到本地项目：${projectId}`);
     }
-    return this.read(filePath);
+    return this.upgradeProject(this.read(filePath), filePath);
   }
 
   updateProject(projectId, patch) {
@@ -192,7 +231,21 @@ class LocalStore {
     const currentContent = current.content && typeof current.content === "object" && !Array.isArray(current.content)
       ? current.content
       : {};
-    current.content = { ...currentContent, ...contentPatch };
+    const explicitSources = contentPatch.fact_sources && typeof contentPatch.fact_sources === "object"
+      && !Array.isArray(contentPatch.fact_sources)
+      ? contentPatch.fact_sources
+      : {};
+    const changedFields = Object.keys(contentPatch).filter((field) => !PROJECT_METADATA_FIELDS.has(field));
+    const mergedSources = {
+      ...(currentContent.fact_sources || {}),
+      ...explicitSources,
+    };
+    for (const field of changedFields) {
+      if (!explicitSources[field]) {
+        mergedSources[field] = { source: "user_edited", confirmed: true };
+      }
+    }
+    current.content = { ...currentContent, ...contentPatch, fact_sources: mergedSources };
     if (patch.name || patch.project_name) {
       current.name = String(patch.name ?? patch.project_name).trim();
     }
@@ -247,7 +300,7 @@ class Client {
         "X-Device-ID": deviceId(),
         "X-Request-ID": `req_${randomUUID().replaceAll("-", "")}`,
         "Content-Type": "application/json",
-        "User-Agent": "ruankao-essay-coach/0.1.0",
+        "User-Agent": "ruankao-essay-coach/0.2.0",
       },
       body: payload === undefined ? undefined : JSON.stringify(payload),
     });
@@ -324,6 +377,7 @@ async function execute(client, argv) {
     if (["prepare", "check"].includes(action)) {
       return client.call("POST", `/projects/${action}`, {
         project_profile: store.getProject(required(first, "缺少项目 ID")),
+        ...(action === "prepare" && second ? { practice_context: { mode: second } } : {}),
       });
     }
   }
