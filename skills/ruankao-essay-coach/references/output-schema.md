@@ -27,7 +27,9 @@ scoring rules, keyword density, fixed transitions, or internal rule metadata.
 
 `essay check` returns `passed`, up to three high-priority issues, up to three
 medium-priority issues, and matching `repair_requirements`. Use only those
-repair requirements in the second-round full rewrite.
+repair requirements in the next full rewrite. The bundled client exits with
+code `3` when `passed` is false. Do not return a final essay until a later check
+returns `passed: true`.
 
 ## Optimization types
 

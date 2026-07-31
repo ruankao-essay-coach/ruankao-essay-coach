@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 const DEFAULT_BASE_URL = "https://api.bindvault.me/ruankao/api/v1";
 
@@ -300,7 +301,7 @@ class Client {
         "X-Device-ID": deviceId(),
         "X-Request-ID": `req_${randomUUID().replaceAll("-", "")}`,
         "Content-Type": "application/json",
-        "User-Agent": "ruankao-essay-coach/0.2.2",
+        "User-Agent": "ruankao-essay-coach/0.2.3",
       },
       body: payload === undefined ? undefined : JSON.stringify(payload),
     });
@@ -401,18 +402,27 @@ async function execute(client, argv) {
   throw new Error(usage());
 }
 
+export function resultExitCode(argv, result) {
+  const [group, action] = argv;
+  return group === "essay" && action === "check" && result?.passed === false ? 3 : 0;
+}
+
 async function main() {
   try {
     if (process.argv.includes("--help") || process.argv.includes("-h")) {
       console.log(usage());
       return;
     }
-    const result = await execute(new Client(), process.argv.slice(2));
+    const argv = process.argv.slice(2);
+    const result = await execute(new Client(), argv);
     console.log(JSON.stringify(result, null, 2));
+    process.exitCode = resultExitCode(argv, result);
   } catch (error) {
     console.error(error.message);
     process.exit(2);
   }
 }
 
-main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}

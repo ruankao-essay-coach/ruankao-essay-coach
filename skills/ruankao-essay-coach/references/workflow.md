@@ -209,11 +209,16 @@ node "$SKILL_DIR/scripts/ruankao_client.mjs" essay check check.json
 
 The Server returns at most three high-priority and three medium-priority issues.
 Use only `repair_requirements` in the revision prompt. Rewrite the complete
-essay while preserving its unaffected structure, facts, and natural style.
+essay while preserving its unaffected structure, facts, and natural style. The
+client exits with code `3` when `passed` is false; treat that as an unfinished
+delivery, not a successful tool call. Recheck after each rewrite, for at most
+three repair rounds, and return an essay only after `passed: true`.
 
 ## Completion
 
-Return the repaired complete essay. If the check result contains
+Return the repaired complete essay only after the completion gate passes. If
+three repair rounds still fail, report the remaining blockers instead of
+presenting the draft as final. If the check result contains
 `supplement_disclosure`, append one concise `练习设定说明` after the essay.
 Do not include that note in the essay character count. The Server does not
 store generation history or the full essay.

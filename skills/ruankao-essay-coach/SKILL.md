@@ -38,9 +38,9 @@ first protected request.
 8. Compare the confirmed task with the project. In the default mode, create a small, plausible supplement plan for unsupported topic material. Confirm only key settings such as introducing a new platform, changing architecture style, or adding a pilot scope. If `supplement_strategy` is `auto`, continue without interruption and mark every addition `model_supplemented` with `confidence: plausible` and `confirmed: false`.
 9. Send the confirmed `essay_task`, practice context, supplements, and selected project to `essay generation-brief`. Use the concise first-generation prompt from the reference file with the returned brief and local project profile.
 10. Let the current model generate the full essay. The default hard total is 2,100–2,200 non-whitespace characters. Return title, abstract, body, and conclusion—not analysis, outline, score, or advice.
-11. Run `essay check` with the same confirmed task, project, practice context, target range, and full essay.
-12. If `passed` is false, use only `repair_requirements` in the concise revision prompt. Rewrite the complete essay without rerunning all generation rules, then recheck.
-13. Return the final complete essay. When `disclosure_required` is true, append one concise “练习设定说明” listing model-supplemented or sample-project settings; do not count that note as part of the essay.
+11. Treat `essay check` as a mandatory completion gate. Run it with the same confirmed task, project, practice context, target range, and full essay. A failed check returns process exit code `3` even though its JSON remains available.
+12. If the command exits nonzero or `passed` is false, use only `repair_requirements` in the concise revision prompt, rewrite the complete essay, and recheck. Repeat for at most three repair rounds. Never present a failed draft as the final essay.
+13. Return the complete essay only when the latest check says `passed: true`. If three repairs still fail, report the remaining blockers instead of labeling the draft final. When `disclosure_required` is true, append one concise “练习设定说明” listing model-supplemented or sample-project settings; do not count that note as part of the essay.
 
 Read [workflow.md](references/workflow.md) when executing the full generation or rewrite workflow.
 Read [resume-import.md](references/resume-import.md) when the user attaches or @-references a resume.
