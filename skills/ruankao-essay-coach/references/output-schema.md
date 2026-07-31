@@ -13,7 +13,7 @@ Important fields:
 - `fact_boundaries`: constraints that prevent supplements from conflicting with known facts;
 - `total_words`: hard minimum and maximum;
 - `structure`: five concise section targets and focus lists;
-- `writing_requirements`: a short list of first-generation constraints.
+- `writing_requirements`: a short list of mandatory first-generation constraints; satisfy every item.
 
 The response intentionally excludes internal rule, template, outline, strategy,
 scoring, and rule-version identifiers.
