@@ -22,9 +22,9 @@ function usage() {
   ruankao_client.mjs essay generation-brief|optimization-brief|check|review <json-file>
 
 Exit codes for "essay check":
-  0  规则闸门通过且字数在范围内；仍需按 semantic_review 完成语义自查
-  3  仍有内容问题，按 repair_requirements 重写全文
-  4  内容问题已清空，只剩字数越界，按 length_adjustment.instructions 调整篇幅`;
+  0  客观检查通过且字数在范围内
+  3  存在项目事实冲突、显式评分点标签或完全重复句
+  4  客观检查通过，只剩字数越界`;
 }
 
 function chmodIfPossible(targetPath, mode) {
@@ -307,7 +307,7 @@ class Client {
         "X-Device-ID": deviceId(),
         "X-Request-ID": `req_${randomUUID().replaceAll("-", "")}`,
         "Content-Type": "application/json",
-        "User-Agent": "ruankao-essay-coach/0.2.9",
+        "User-Agent": "ruankao-essay-coach/0.3.0",
       },
       body: payload === undefined ? undefined : JSON.stringify(payload),
     });
@@ -328,20 +328,18 @@ class Client {
   }
 
   enrich(payload) {
-    const enriched = { ...payload };
-    const projectId = String(enriched.project_profile_id ?? "").trim();
-    delete enriched.project_profile_id;
-    if (projectId && !enriched.project_profile) {
-      enriched.project_profile = this.store.getProject(projectId);
-    }
-    if (!enriched.candidate_profile) {
-      const profile = this.store.getProfile();
-      if (profile.exists) {
-        enriched.candidate_profile = profile.profile.content;
-      }
-    }
-    return enriched;
+    return enrichRequestPayload(payload, this.store);
   }
+}
+
+export function enrichRequestPayload(payload, store) {
+  const enriched = { ...payload };
+  const projectId = String(enriched.project_profile_id ?? "").trim();
+  delete enriched.project_profile_id;
+  if (projectId && !enriched.project_profile) {
+    enriched.project_profile = store.getProject(projectId);
+  }
+  return enriched;
 }
 
 function required(value, message) {

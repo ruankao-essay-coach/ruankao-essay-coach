@@ -16,45 +16,40 @@ Important fields:
 - `fact_boundaries`: constraints that prevent supplements from conflicting with known facts;
 - `total_words`: hard minimum and maximum;
 - `structure`: five concise section targets and focus lists;
-- `writing_requirements`: a short list of mandatory first-generation constraints; satisfy every item.
+- `writing_requirements`: a short list containing project consistency and the two non-negotiable scoring techniques; use it as guidance for one natural essay, not as a checklist to expose.
 
 The response intentionally excludes internal rule, template, outline, strategy,
 scoring, and rule-version identifiers.
 
-The default hard range is 2,100–2,200 non-whitespace characters. The default
-section targets are 300, 400, 200, 1,000, and 300. Treat them as the concise
-exam structure supplied by the Server; do not add sentence-level instructions,
-scoring rules, keyword density, fixed transitions, or internal rule metadata.
+The default hard range is 2,200–2,650 non-whitespace characters. Section
+targets scale dynamically from the 300, 400, 400, 1,000, and 300 base weights.
+Treat them as the concise exam structure supplied by the Server; do not add
+sentence-level instructions, scoring rules, keyword density, fixed
+transitions, or internal rule metadata. Preserve a different range only when
+the user's complete prompt explicitly requires it.
 
 ## Check result
 
-`essay check` returns three separate things. Do not collapse them.
+`essay check` is deliberately narrow:
 
-- `passed` and `issues`: the rule gate. Up to three high-priority and three
-  medium-priority objective findings, with matching `repair_requirements`. Use
-  only those repair requirements in the next full rewrite. `gate` is
-  `rules_only` as a reminder that this is not the whole gate.
-- `semantic_review`: the rubric the current model must judge itself, including
-  `project_grounding`, one item per confirmed task requirement, plus
-  `topic_relevance`, `substance`, and `theory_ratio`. Each item carries
-  `question`, `guidance`, and a
-  `repair_template`. `evidence.must_be_verbatim` requires a quoted original
-  sentence; `blocking_verdicts` lists the verdicts that mean unfinished.
-- `length_adjustment`: `in_range`, the counted characters, the background
-  paragraph range, and `instructions`. Handle this once at the end; it never
-  consumes a repair round.
+- `passed`, `issues`, and `repair_requirements` cover only objective project
+  conflicts, exposed scoring-point labels, and exactly repeated sentences;
+- `length_adjustment` reports only total non-whitespace character count and a
+  concise trim-or-expand instruction;
+- `gate` is `objective_only`; the endpoint does not use keyword matching to
+  judge abstract quality, background quality, tradeoff meaning, or conclusion
+  meaning.
 
-Client exit codes: `3` content issues remain, `4` content is fine but the length
-is out of range, `0` the rule gate passed. Exit `0` still requires the semantic
-gate before returning an essay.
+Client exit codes: `3` means an objective issue remains, `4` means only the
+length is out of range, and `0` means both passed. If correction is needed,
+combine everything into one polish and recheck once.
 
 ## Review result
 
-`essay review` returns no score. It returns `scoring_mode: model_judged`, the
-seven `dimensions` with `max_score`, the `objective_findings` already mapped to
-the dimension each finding actually affects, the `semantic_checks` that feed
-each dimension, `unmapped_findings`, the same `semantic_review` and
-`length_adjustment`, and `scoring_instructions`.
+`essay review` returns no score. It returns `scoring_mode: model_judged`, seven
+dimensions, objective findings, a compact semantic review for project/task
+grounding, architecture tradeoffs, and the harmless-shortcoming conclusion,
+plus length and scoring guidance.
 
 Assign each dimension score yourself after completing the semantic review. Keep
 every deduction on the dimension it belongs to; never fill one dimension and
