@@ -1,4 +1,4 @@
 interface:
   display_name: "软考论文教练"
   short_description: "确认论文题目，并从真实资料、合理补全或示例项目生成完整考试论文"
-  default_prompt: "Use $ruankao-essay-coach to confirm my essay task, organize my project facts, reasonably supplement missing practice settings when needed, and generate a complete essay."
+  default_prompt: "使用 $ruankao-essay-coach 确认我的论文题目，整理项目事实，必要时合理补全练习设定，并生成一篇完整论文。"

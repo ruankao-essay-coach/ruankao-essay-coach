@@ -421,7 +421,7 @@ export class Client {
         "X-Device-ID": this.device,
         "X-Request-ID": `req_${randomUUID().replaceAll("-", "")}`,
         "Content-Type": "application/json",
-        "User-Agent": "ruankao-essay-coach/1.0.2",
+        "User-Agent": "ruankao-essay-coach/1.0.4",
       },
       body: payload === undefined ? undefined : JSON.stringify(payload),
     }, this.retryDelaysMs);
