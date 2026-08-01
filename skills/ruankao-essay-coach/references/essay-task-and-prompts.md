@@ -18,7 +18,9 @@ Extract the user's original words into a pending task:
 }
 ```
 
-Preserve the user's explicit requirements and limits. Keep the task pending
+Preserve every numbered requirement completely, including any subpoints,
+aspects, or implementation items embedded in the third requirement. Preserve
+the user's explicit requirements and limits. Keep the task pending
 until one consolidated project-and-task confirmation. Only explicit user
 confirmation changes `status` to `confirmed`.
 
