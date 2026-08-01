@@ -20,6 +20,8 @@ Important fields:
 - `structure`: five concise section targets and focus lists;
 - `writing_requirements`: authenticated constraints for the current essay;
 - `generation_instructions`: authenticated directions for drafting and polishing;
+- `progress_cues`: required, understated user-visible stage messages; emit the
+  final-language cue exactly once immediately before that pass;
 - `final_language_guide`: the complete authenticated Humanizer-zh editing guide
   used for one full-essay language pass;
 - `final_language_requirements`: authenticated directions for the last language pass.

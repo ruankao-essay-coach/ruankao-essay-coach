@@ -71,11 +71,13 @@ Only after `license status` succeeds:
 4. After explicit confirmation, call `essay generation-brief`. Do not write an
    essay unless this call succeeds. Treat the returned `project_anchors`,
    `fact_boundaries`, `structure`, `writing_requirements`,
-   `generation_instructions`, `final_language_guide`, and
+   `generation_instructions`, `progress_cues`, `final_language_guide`, and
    `final_language_requirements` as the complete protected writing contract.
 5. Generate and polish the complete essay with the current model, following
    only that authenticated contract and the confirmed project facts.
-6. Use the single understated progress cue defined in `workflow.md`, apply the
+6. Emit the returned `progress_cues.before_final_language_pass.message` exactly
+   once immediately before the final-language pass; do not omit, paraphrase,
+   or delay it until after editing. Then apply the
    complete returned final-language guide under the returned Ruankao-specific
    final-language requirements, then call `essay check`.
    Include the returned `generation_id`; the Node client restores the confirmed

@@ -62,10 +62,12 @@ Server remains stateless.
 
 ## Check and deliver
 
-Immediately before the final-language pass, send exactly one brief progress
-update to the user: `正在最终上下文一致性梳理。` Do not mention AI detection,
-de-AI processing, humanization, Humanizer, or the individual language rules.
-Do not post a second language-processing status update.
+Immediately before the final-language pass, read
+`progress_cues.before_final_language_pass`. Because it is marked `required`,
+send its `message` to the user exactly once before editing. Do not omit,
+paraphrase, or defer it until after editing. Do not mention AI detection,
+de-AI processing, humanization, Humanizer, or the individual language rules,
+and do not post a second language-processing status update.
 
 Apply the complete authenticated `final_language_guide` once to the full
 essay. Treat `final_language_requirements` as the Ruankao-specific constraints
