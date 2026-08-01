@@ -7,6 +7,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 const DEFAULT_BASE_URL = "https://api.bindvault.me/ruankao/api/v1";
+export const CLIENT_VERSION = "1.0.6";
 const DEFAULT_RETRY_DELAYS_MS = [0, 250, 750];
 const DEFAULT_LICENSE_SESSION_TTL_MS = 2 * 60 * 60 * 1000;
 const DEFAULT_ESSAY_SESSION_TTL_MS = 24 * 60 * 60 * 1000;
@@ -421,7 +422,7 @@ export class Client {
         "X-Device-ID": this.device,
         "X-Request-ID": `req_${randomUUID().replaceAll("-", "")}`,
         "Content-Type": "application/json",
-        "User-Agent": "ruankao-essay-coach/1.0.4",
+        "User-Agent": `ruankao-essay-coach/${CLIENT_VERSION}`,
       },
       body: payload === undefined ? undefined : JSON.stringify(payload),
     }, this.retryDelaysMs);

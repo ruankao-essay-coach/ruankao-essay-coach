@@ -100,8 +100,10 @@ Beyond the calls used in the default flow above, the client also exposes:
 
 - `profile delete`: remove the local candidate profile when the user asks to
   reset or withdraw their saved profile.
-- `project get <project-id>`: read back one stored project's full local
-  record, e.g. to show it to the user before an edit.
+- `project get <project-id>`: read back one stored project's full local record
+  for internal selection or editing. When presenting it to the user, identify
+  the project by name and show only relevant project fields; never expose the
+  returned `id`, provenance metadata, or local storage paths.
 - `project update <project-id> <json-file>`: apply a user-confirmed edit to a
   stored project (name, period, role, stack, results, ...). Only write fields
   the user explicitly confirmed; never invent the edit.
