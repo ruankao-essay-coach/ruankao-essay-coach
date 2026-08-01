@@ -1,12 +1,39 @@
 #!/usr/bin/env node
 
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 const DEFAULT_BASE_URL = "https://api.bindvault.me/ruankao/api/v1";
+const DEFAULT_RETRY_DELAYS_MS = [0, 250, 750];
+const DEFAULT_LICENSE_SESSION_TTL_MS = 2 * 60 * 60 * 1000;
+const DEFAULT_ESSAY_SESSION_TTL_MS = 24 * 60 * 60 * 1000;
+const RETRYABLE_HTTP_STATUSES = new Set([502, 503, 504]);
+
+function wait(ms) {
+  return ms > 0 ? new Promise((resolve) => setTimeout(resolve, ms)) : Promise.resolve();
+}
+
+export async function fetchWithRetry(fetchImpl, url, options, retryDelaysMs = DEFAULT_RETRY_DELAYS_MS) {
+  let lastError;
+  for (let attempt = 0; attempt < retryDelaysMs.length; attempt += 1) {
+    await wait(retryDelaysMs[attempt]);
+    try {
+      const response = await fetchImpl(url, options);
+      if (RETRYABLE_HTTP_STATUSES.has(response.status) && attempt < retryDelaysMs.length - 1) {
+        await response.arrayBuffer().catch(() => undefined);
+        continue;
+      }
+      return response;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  const detail = String(lastError?.message || "未知网络错误");
+  throw new Error(`网络请求失败（已自动重试${retryDelaysMs.length}次）：${detail}`);
+}
 
 function usage() {
   return `Usage:
@@ -106,8 +133,10 @@ export class LocalStore {
     this.root = root || configDir();
     this.profilePath = path.join(this.root, "profile.json");
     this.projectsDir = path.join(this.root, "projects");
+    this.essaySessionsDir = path.join(this.root, "essay_sessions");
     ensureDir(this.root, 0o700);
     ensureDir(this.projectsDir, 0o700);
+    ensureDir(this.essaySessionsDir, 0o700);
   }
 
   read(filePath) {
@@ -272,6 +301,81 @@ export class LocalStore {
     fs.unlinkSync(filePath);
     return { deleted: true, project_id: projectId };
   }
+
+  essaySessionPath(generationId) {
+    const fingerprint = createHash("sha256").update(generationId, "utf8").digest("hex");
+    return path.join(this.essaySessionsDir, `${fingerprint}.json`);
+  }
+
+  saveEssaySession(request, result) {
+    const generationId = String(result?.generation_id || "").trim();
+    const essayTask = request?.essay_task;
+    if (!generationId) {
+      throw new Error("生成简报缺少 generation_id，无法建立本地终检上下文");
+    }
+    if (
+      !essayTask
+      || essayTask.status !== "confirmed"
+      || !String(essayTask.topic || "").trim()
+      || !Array.isArray(essayTask.task_requirements)
+      || essayTask.task_requirements.length === 0
+    ) {
+      throw new Error("生成请求缺少已确认的论文题目，无法建立本地终检上下文");
+    }
+
+    const timestamp = nowIso();
+    const session = {
+      schema_version: 1,
+      generation_id: generationId,
+      essay_task: structuredClone(essayTask),
+      ...(request.project_profile_id
+        ? { project_profile_id: String(request.project_profile_id) }
+        : {}),
+      ...(!request.project_profile_id && request.project_profile
+        ? { project_profile: structuredClone(request.project_profile) }
+        : {}),
+      ...(request.practice_context
+        ? { practice_context: structuredClone(request.practice_context) }
+        : {}),
+      created_at: timestamp,
+      expires_at: new Date(Date.now() + DEFAULT_ESSAY_SESSION_TTL_MS).toISOString(),
+    };
+    atomicWriteJson(this.essaySessionPath(generationId), session);
+    return session;
+  }
+
+  hydrateEssayRequest(payload) {
+    const hasConfirmedTask = payload?.essay_task?.status === "confirmed"
+      && String(payload.essay_task.topic || "").trim()
+      && Array.isArray(payload.essay_task.task_requirements)
+      && payload.essay_task.task_requirements.length > 0;
+    const hasProject = Boolean(payload?.project_profile || String(payload?.project_profile_id || "").trim());
+    if (hasConfirmedTask && hasProject) return payload;
+
+    const generationId = String(payload?.generation_id || "").trim();
+    if (!generationId) {
+      throw new Error("终检请求缺少 generation_id，且未携带完整的已确认题目与项目资料");
+    }
+    const sessionPath = this.essaySessionPath(generationId);
+    if (!fs.existsSync(sessionPath)) {
+      throw new Error(`未找到本机论文上下文：${generationId}；请重新执行 essay generation-brief`);
+    }
+    const session = this.read(sessionPath);
+    if (session.generation_id !== generationId) {
+      throw new Error("本机论文上下文与 generation_id 不匹配，请重新执行 essay generation-brief");
+    }
+    if (Date.parse(String(session.expires_at || "")) <= Date.now()) {
+      throw new Error(`本机论文上下文已过期：${generationId}；请重新执行 essay generation-brief`);
+    }
+
+    return {
+      essay_task: structuredClone(session.essay_task),
+      ...(session.project_profile_id ? { project_profile_id: session.project_profile_id } : {}),
+      ...(session.project_profile ? { project_profile: structuredClone(session.project_profile) } : {}),
+      ...(session.practice_context ? { practice_context: structuredClone(session.practice_context) } : {}),
+      ...payload,
+    };
+  }
 }
 
 function deviceId() {
@@ -289,28 +393,38 @@ function deviceId() {
   return value;
 }
 
-class Client {
-  constructor(store = undefined) {
+export class Client {
+  constructor(
+    store = undefined,
+    fetchImpl = fetch,
+    retryDelaysMs = DEFAULT_RETRY_DELAYS_MS,
+    sessionTtlMs = Number(process.env.RUANKAO_LICENSE_SESSION_TTL_MS || DEFAULT_LICENSE_SESSION_TTL_MS),
+  ) {
     this.baseUrl = (process.env.RUANKAO_API_BASE_URL || DEFAULT_BASE_URL).replace(/\/+$/, "");
     this.token = (process.env.RUANKAO_LICENSE_TOKEN || "").trim();
     this.store = store || new LocalStore();
+    this.fetchImpl = fetchImpl;
+    this.retryDelaysMs = retryDelaysMs;
+    this.sessionTtlMs = sessionTtlMs;
+    this.device = deviceId();
+    this.sessionPath = path.join(this.store.root, "license_session.json");
   }
 
   async call(method, apiPath, payload = undefined) {
     if (!this.token) {
       throw new Error("请设置 RUANKAO_LICENSE_TOKEN");
     }
-    const response = await fetch(`${this.baseUrl}${apiPath}`, {
+    const response = await fetchWithRetry(this.fetchImpl, `${this.baseUrl}${apiPath}`, {
       method,
       headers: {
         Authorization: `Bearer ${this.token}`,
-        "X-Device-ID": deviceId(),
+        "X-Device-ID": this.device,
         "X-Request-ID": `req_${randomUUID().replaceAll("-", "")}`,
         "Content-Type": "application/json",
-        "User-Agent": "ruankao-essay-coach/0.3.3",
+        "User-Agent": "ruankao-essay-coach/0.3.5",
       },
       body: payload === undefined ? undefined : JSON.stringify(payload),
-    });
+    }, this.retryDelaysMs);
     const text = await response.text();
     let body = text ? undefined : { ok: true };
     if (text) {
@@ -331,6 +445,45 @@ class Client {
     if (!this.token) {
       throw new Error("请设置 RUANKAO_LICENSE_TOKEN");
     }
+  }
+
+  sessionFingerprint() {
+    return createHash("sha256")
+      .update(`${this.baseUrl}\n${this.device}\n${this.token}`, "utf8")
+      .digest("hex");
+  }
+
+  hasFreshLicenseSession(now = Date.now()) {
+    try {
+      const session = JSON.parse(fs.readFileSync(this.sessionPath, "utf8"));
+      return session.fingerprint === this.sessionFingerprint()
+        && Number(session.valid_until_ms) > now + 5000;
+    } catch {
+      return false;
+    }
+  }
+
+  rememberLicenseSession(status, now = Date.now()) {
+    const remoteExpiry = Date.parse(String(status?.expires_at || ""));
+    const ttlExpiry = now + this.sessionTtlMs;
+    const validUntil = Number.isFinite(remoteExpiry) ? Math.min(ttlExpiry, remoteExpiry) : ttlExpiry;
+    atomicWriteJson(this.sessionPath, {
+      fingerprint: this.sessionFingerprint(),
+      verified_at: new Date(now).toISOString(),
+      valid_until_ms: validUntil,
+    });
+  }
+
+  async refreshLicenseSession() {
+    const status = await this.call("GET", "/license/status");
+    if (status?.valid === true) this.rememberLicenseSession(status);
+    return status;
+  }
+
+  async ensureLicenseSession() {
+    this.requireToken();
+    if (this.hasFreshLicenseSession()) return { valid: true, cached: true };
+    return this.refreshLicenseSession();
   }
 
   enrich(payload) {
@@ -360,10 +513,16 @@ export async function execute(client, argv) {
   client.requireToken();
 
   if (group === "license" && action === "status") {
-    return client.call("GET", "/license/status");
+    return client.refreshLicenseSession();
   }
 
-  await client.call("GET", "/license/status");
+  const remoteCommand = (group === "profile" && action === "prepare")
+    || (group === "project" && ["prepare", "check"].includes(action))
+    || (group === "topic" && action === "analyze")
+    || (group === "essay" && ["generation-brief", "optimization-brief", "check", "review"].includes(action));
+  if (!remoteCommand) {
+    await client.ensureLicenseSession();
+  }
   const store = client.store;
 
   if (group === "profile") {
@@ -408,7 +567,14 @@ export async function execute(client, argv) {
       review: "/essays/review",
     };
     if (paths[action]) {
-      return client.call("POST", paths[action], client.enrich(readJsonFile(required(first, "缺少 JSON 文件路径"))));
+      const request = readJsonFile(required(first, "缺少 JSON 文件路径"));
+      if (action === "generation-brief") {
+        const result = await client.call("POST", paths[action], client.enrich(request));
+        store.saveEssaySession(request, result);
+        return result;
+      }
+      const hydrated = store.hydrateEssayRequest(request);
+      return client.call("POST", paths[action], client.enrich(hydrated));
     }
   }
 

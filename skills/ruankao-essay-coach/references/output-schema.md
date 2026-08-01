@@ -4,7 +4,9 @@
 
 Important fields:
 
-- `generation_id`: ephemeral identifier for this response; it is not stored;
+- `generation_id`: identifier for this writing run; the stateless Server does
+  not store it, while the Node client uses it to find a short-lived local
+  context record for later check, review, or optimization calls;
 - `topic`: confirmed essay title;
 - `task_requirements`: confirmed questions the essay must answer;
 - `project_anchors`: the selected project's factual spine—identity, role,
@@ -18,6 +20,8 @@ Important fields:
 - `structure`: five concise section targets and focus lists;
 - `writing_requirements`: authenticated constraints for the current essay;
 - `generation_instructions`: authenticated directions for drafting and polishing;
+- `final_language_guide`: the complete authenticated Humanizer-zh editing guide
+  used for one full-essay language pass;
 - `final_language_requirements`: authenticated directions for the last language pass.
 
 The response intentionally excludes internal rule, template, outline, strategy,
@@ -41,6 +45,11 @@ by the Server. Do not invent or reconstruct unavailable instructions.
 Client exit codes: `3` means an objective issue remains, `4` means only the
 length is out of range, and `0` means both passed. If correction is needed,
 combine everything into one polish and recheck once.
+
+The request only needs the returned `generation_id` and complete `essay` when
+it belongs to a successful generation run on the same machine. The client
+automatically restores the confirmed `essay_task`, selected project, and
+practice context. It does not save the essay text.
 
 ## Review result
 

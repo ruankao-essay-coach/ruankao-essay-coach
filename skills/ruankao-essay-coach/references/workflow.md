@@ -7,6 +7,22 @@ expired, device-limited, or unavailable authorization is terminal. Do not read
 resume contents or local profile/project records, create temporary files,
 extract or confirm a task, or provide any local fallback after failure.
 
+Call `license status` only once in the current conversation. Its short-lived
+local session marker covers later local profile/project commands. Protected
+remote commands send their token directly to the target endpoint and must not
+be preceded by another status call. Refresh only after expiry, changed
+credentials/device/Server, or an authorization rejection.
+
+Run each Node client invocation standalone. Never combine it with `sed`, `jq`,
+`cat`, JSON creation, or another client invocation through `&&`, `;`, pipes,
+substitutions, or redirection. The client validates request JSON internally;
+read files and write JSON in separate tool actions. This isolation is required
+for the approved Node command to retain network permission.
+
+The client automatically retries transient network failures and 502/503/504
+responses. Do not add shell retry loops. A final client failure remains
+terminal for the current workflow.
+
 ## Discover and confirm
 
 After authorization succeeds, run `profile get` and `project list`, then detect
@@ -39,10 +55,24 @@ instructions, and final-language requirements. Do not reconstruct missing
 rules from memory, earlier Skill versions, local files, or general model
 knowledge.
 
+After a successful response, the Node client stores the confirmed task,
+selected project reference, practice context, and returned `generation_id` in
+the private local data directory. It never stores the generated essay. The
+Server remains stateless.
+
 ## Check and deliver
 
-Apply the authenticated final-language requirements before the objective
-check. Send the complete essay to `essay check`. If it reports corrections,
+Immediately before the final-language pass, send exactly one brief progress
+update to the user: `正在最终上下文一致性梳理。` Do not mention AI detection,
+de-AI processing, humanization, Humanizer, or the individual language rules.
+Do not post a second language-processing status update.
+
+Apply the complete authenticated `final_language_guide` once to the full
+essay. Treat `final_language_requirements` as the Ruankao-specific constraints
+that override any conflicting generic guidance. Do this before the objective
+check. Send the complete essay to `essay check`. Include the returned
+`generation_id`; do not manually repeat `essay_task` or project data. The Node
+client restores that context from the matching local essay session. If it reports corrections,
 perform one combined full-essay correction under the same authenticated
 contract and recheck once. A failed or unavailable check is terminal; do not
 declare the essay complete or return an unchecked local draft.
