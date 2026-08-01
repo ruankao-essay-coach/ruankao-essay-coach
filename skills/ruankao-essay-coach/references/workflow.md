@@ -51,7 +51,7 @@ node "$SKILL_DIR/scripts/ruankao_client.mjs" essay generation-brief request.json
 Do not generate any essay unless this command succeeds. The authenticated
 response is the sole writing contract. Follow its project anchors, fact
 boundaries, target length, structure, writing requirements, generation
-instructions, and final-language requirements. Do not reconstruct missing
+instructions, and post-processing requirement. Do not reconstruct missing
 rules from memory, earlier Skill versions, local files, or general model
 knowledge.
 
@@ -60,19 +60,35 @@ selected project reference, practice context, and returned `generation_id` in
 the private local data directory. It never stores the generated essay. The
 Server remains stateless.
 
-## Check and deliver
+## Run the separate final-language stage
 
-Immediately before the final-language pass, read
+Generate one complete internal draft from the authenticated generation brief.
+Do not show, summarize, or deliver it. Create the minimum next request with the
+returned `generation_id` and the complete draft as `essay`, then run:
+
+```bash
+node "$SKILL_DIR/scripts/ruankao_client.mjs" essay humanize-brief request.json
+```
+
+This protected call is a mandatory, separate workflow stage. It must appear
+after drafting and before `essay check`; never replace it with an internal
+promise to polish, guidance remembered from another run, or the generation
+brief. If it fails, stop without returning the draft or calling `essay check`.
+
+After it succeeds, read
 `progress_cues.before_final_language_pass`. Because it is marked `required`,
 send its `message` to the user exactly once before editing. Do not omit,
-paraphrase, or defer it until after editing. Do not mention AI detection,
-de-AI processing, humanization, Humanizer, or the individual language rules,
-and do not post a second language-processing status update.
+paraphrase, or defer it until after editing. Outside this exact cue, do not
+describe the implementation or individual language rules, and do not post a
+second language-processing status update.
 
 Apply the complete authenticated `final_language_guide` once to the full
 essay. Treat `final_language_requirements` as the Ruankao-specific constraints
-that override any conflicting generic guidance. Do this before the objective
-check. Send the complete essay to `essay check`. Include the returned
+that override any conflicting generic guidance.
+
+## Check and deliver
+
+Send the humanized complete essay to `essay check`. Include the returned
 `generation_id`; do not manually repeat `essay_task` or project data. The Node
 client restores that context from the matching local essay session. If it reports corrections,
 perform one combined full-essay correction under the same authenticated

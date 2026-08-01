@@ -46,7 +46,7 @@ function usage() {
   ruankao_client.mjs project prepare <project-id> [authentic|reasonable_supplement|sample_project]
   ruankao_client.mjs project update <project-id> <json-file>
   ruankao_client.mjs topic analyze <json-file>
-  ruankao_client.mjs essay generation-brief|optimization-brief|check|review <json-file>
+  ruankao_client.mjs essay generation-brief|humanize-brief|optimization-brief|check|review <json-file>
 
 Exit codes for "essay check":
   0  客观检查通过且字数在范围内
@@ -519,7 +519,7 @@ export async function execute(client, argv) {
   const remoteCommand = (group === "profile" && action === "prepare")
     || (group === "project" && ["prepare", "check"].includes(action))
     || (group === "topic" && action === "analyze")
-    || (group === "essay" && ["generation-brief", "optimization-brief", "check", "review"].includes(action));
+    || (group === "essay" && ["generation-brief", "humanize-brief", "optimization-brief", "check", "review"].includes(action));
   if (!remoteCommand) {
     await client.ensureLicenseSession();
   }
@@ -562,6 +562,7 @@ export async function execute(client, argv) {
   if (group === "essay") {
     const paths = {
       "generation-brief": "/essays/generation-brief",
+      "humanize-brief": "/essays/humanize-brief",
       "optimization-brief": "/essays/optimization-brief",
       check: "/essays/check",
       review: "/essays/review",
