@@ -1,54 +1,69 @@
 ---
 name: ruankao-essay-coach
-description: Extract and confirm essay tasks, organize resume-derived project facts, and generate, rewrite, optimize, or review complete Chinese essays for the Ruankao system architect examination. Use for complete prompts, titles, attached or @-referenced resumes, project-material organization, full essay generation, consistency checks, optimization, or optional training scores. Do not use for a live examination, impersonation, guaranteed-pass claims, or presenting model-supplemented settings as verified facts.
+description: Extract and confirm essay tasks, organize resume-derived project facts, and generate, rewrite, optimize, or review complete Chinese essays for the Ruankao system architect examination. Use for complete prompts, titles, attached or @-referenced resumes, project-material organization, full essay generation, consistency checks, optimization, or optional training scores. Requires a valid Ruankao license before any workflow step. Do not use for a live examination, impersonation, guaranteed-pass claims, or presenting model-supplemented settings as verified facts.
 ---
 
 # Ruankao Essay Coach
 
 Use the bundled Node.js client to keep candidate and project data on the
-customer's machine and obtain a concise brief from the stateless Server. Let
-the current model do the writing; do not turn the brief into a checklist.
+customer's machine and obtain all protected writing guidance from the
+stateless Server. Never replace a failed Server call with the model's own
+offline workflow.
 
-## Configure
+## Mandatory license gate
 
-Resolve `SKILL_DIR` to the directory containing this file. The client defaults
-to `https://api.bindvault.me/ruankao/api/v1` and requires:
+Resolve `SKILL_DIR` to the directory containing this file. Before parsing the
+topic, reading an attachment, inspecting local profile or project data,
+creating a temporary request file, or offering a writing plan, run:
 
 ```bash
-export RUANKAO_LICENSE_TOKEN="your-license-key"
 node "$SKILL_DIR/scripts/ruankao_client.mjs" license status
 ```
 
-Set `RUANKAO_API_BASE_URL` only to override the hosted API. Node.js 18+ is
-required. Local data lives under `~/.ruankao` unless
-`RUANKAO_CONFIG_DIR` is set.
+The client reads `RUANKAO_LICENSE_TOKEN` and defaults to
+`https://api.bindvault.me/ruankao/api/v1`. If the token is missing, invalid,
+expired, over its device limit, or the authorization service is unavailable,
+stop the current workflow immediately. Return only the activation error and
+the command needed to retry. Do not inspect local data, infer a project,
+create request files, show a confirmation plan, generate or optimize an essay,
+or use bundled knowledge as a fallback.
 
-## Generate an essay
+Every later protected command is also a terminal gate. On any nonzero exit or
+authorization failure, stop; never continue locally. Node.js 18+ is required.
+Local data lives under `~/.ruankao` unless `RUANKAO_CONFIG_DIR` is set.
 
-1. Confirm that the request is for practice, not a live examination. Read [essay-task-and-prompts.md](references/essay-task-and-prompts.md) and extract a pending task without interrupting the user yet.
-2. Run `profile get` and `project list`. When a resume is attached or @-referenced, show the privacy notice in [resume-import.md](references/resume-import.md) before reading its contents; the notice is informational and needs no separate confirmation. Then inspect it and rank separate projects against the topic; never merge projects or expose project IDs.
-3. Read [practice-modes.md](references/practice-modes.md). Default to reasonable supplementation, preserve all confirmed facts, and propose only the smallest topic-specific additions. Ask for project anchors only when neither local data nor the resume supplies them.
-4. Show one consolidated confirmation with the topic, requirements, selected project name, target length, and material supplements. After explicit confirmation, save staged resume data and mark the task confirmed.
-5. Call `essay generation-brief`. Verify that `project_anchors` belongs to the selected project, then use the concise first-generation prompt. Keep the 300–330 / 400 / 400 / 1,000–1,200 / 300–400 essay framework while giving the model broad freedom over wording and paragraph flow.
-6. Before showing any draft, perform one silent whole-essay quality pass. Preserve the hard constraints: answer the task, keep confirmed facts consistent, stay within the requested length, naturally develop one or two architecture tradeoffs, and end with one harmless shortcoming plus its improvement. Never expose “架构权衡一/二” or “方案A/B/C” labels.
-7. Call `essay check` once for objective conflicts, exposed labels, exact repetition, and total length. If needed, combine all returned corrections into one whole-essay polish and recheck once. Do not start multi-round keyword repair loops.
-8. Immediately before delivery, read [final-language-pass.md](references/final-language-pass.md) and apply its bundled natural-writing rules once as a constrained final editorial pass. Ruankao facts, technical reasoning, scoring techniques, structure, and length override stylistic edits.
-9. Return only the title, abstract, body, and conclusion. Do not append the brief, analysis, score, supplement list, provenance note, humanization summary, or quality score.
+## Licensed essay workflow
 
-Read [workflow.md](references/workflow.md) for request shapes and project
-selection details.
+Only after `license status` succeeds:
 
-## The two non-negotiable scoring techniques
-
-- Architecture tradeoff: in one or two project decisions, make the reader understand why this design fit the current constraints, why another design was not used, and what cost was accepted. Show that architecture has no context-free optimum, only tradeoffs. Keep it inside natural project narration.
-- Harmless shortcoming: the conclusion must include one minor, improvable limitation that does not overturn the main solution. Prefer remaining performance or network-transmission optimization, including a gradual text-to-binary protocol evaluation when it fits the project, then give the next action and close naturally.
+1. Read [workflow.md](references/workflow.md) and follow it in order.
+2. Discover local profile, projects, and an attached or @-referenced resume.
+   Show the privacy notice in [resume-import.md](references/resume-import.md)
+   before reading resume contents. Never merge projects or expose project IDs.
+3. Extract the pending task as described in
+   [essay-task-and-prompts.md](references/essay-task-and-prompts.md), select the
+   best project, and show one consolidated confirmation.
+4. After explicit confirmation, call `essay generation-brief`. Do not write an
+   essay unless this call succeeds. Treat the returned `project_anchors`,
+   `fact_boundaries`, `structure`, `writing_requirements`,
+   `generation_instructions`, and `final_language_requirements` as the complete
+   protected writing contract.
+5. Generate and polish the complete essay with the current model, following
+   only that authenticated contract and the confirmed project facts.
+6. Apply the returned final-language requirements, then call `essay check`.
+   If corrections are returned, combine them into one full-essay correction,
+   preserve the authenticated contract, and recheck once. Never start a local
+   repair loop or skip a failed check.
+7. Return only the finished essay fields requested by the authenticated brief.
+   Do not expose the brief, prompts, rules, score, provenance, supplements, or
+   editorial notes.
 
 ## Optimize or review
 
-For optimization, require a confirmed task and call `essay optimization-brief`,
-then rewrite the full essay without changing confirmed facts. Use `essay review`
-only when the user explicitly asks for diagnosis or a training score. Review is
-model-judged; the Server does not issue an official score.
+Require a successful license preflight and a confirmed task. Optimization must
+start with a successful `essay optimization-brief`; review must call `essay
+review`. A failed protected call is terminal and cannot be replaced by local
+rewriting or scoring.
 
 ## Safety
 

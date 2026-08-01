@@ -101,7 +101,7 @@ function applyFactSources(content, defaultSource, changedFields = Object.keys(co
   return { ...content, fact_sources: existing };
 }
 
-class LocalStore {
+export class LocalStore {
   constructor(root = undefined) {
     this.root = root || configDir();
     this.profilePath = path.join(this.root, "profile.json");
@@ -307,7 +307,7 @@ class Client {
         "X-Device-ID": deviceId(),
         "X-Request-ID": `req_${randomUUID().replaceAll("-", "")}`,
         "Content-Type": "application/json",
-        "User-Agent": "ruankao-essay-coach/0.3.2",
+        "User-Agent": "ruankao-essay-coach/0.3.3",
       },
       body: payload === undefined ? undefined : JSON.stringify(payload),
     });
@@ -325,6 +325,12 @@ class Client {
       process.exit(1);
     }
     return body;
+  }
+
+  requireToken() {
+    if (!this.token) {
+      throw new Error("请设置 RUANKAO_LICENSE_TOKEN");
+    }
   }
 
   enrich(payload) {
@@ -349,13 +355,16 @@ function required(value, message) {
   return value;
 }
 
-async function execute(client, argv) {
+export async function execute(client, argv) {
   const [group, action, first, second] = argv;
-  const store = client.store;
+  client.requireToken();
 
   if (group === "license" && action === "status") {
     return client.call("GET", "/license/status");
   }
+
+  await client.call("GET", "/license/status");
+  const store = client.store;
 
   if (group === "profile") {
     if (action === "get") return store.getProfile();

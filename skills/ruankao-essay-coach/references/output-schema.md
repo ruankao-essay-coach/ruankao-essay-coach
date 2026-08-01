@@ -16,17 +16,15 @@ Important fields:
 - `fact_boundaries`: constraints that prevent supplements from conflicting with known facts;
 - `total_words`: hard minimum and maximum;
 - `structure`: five concise section targets and focus lists;
-- `writing_requirements`: a short list containing project consistency and the two non-negotiable scoring techniques; use it as guidance for one natural essay, not as a checklist to expose.
+- `writing_requirements`: authenticated constraints for the current essay;
+- `generation_instructions`: authenticated directions for drafting and polishing;
+- `final_language_requirements`: authenticated directions for the last language pass.
 
 The response intentionally excludes internal rule, template, outline, strategy,
 scoring, and rule-version identifiers.
 
-The default hard range is 2,200–2,650 non-whitespace characters. Section
-targets scale dynamically from the 300, 400, 400, 1,000, and 300 base weights.
-Treat them as the concise exam structure supplied by the Server; do not add
-sentence-level instructions, scoring rules, keyword density, fixed
-transitions, or internal rule metadata. Preserve a different range only when
-the user's complete prompt explicitly requires it.
+Treat the returned range and section targets as the writing contract supplied
+by the Server. Do not invent or reconstruct unavailable instructions.
 
 ## Check result
 
@@ -47,9 +45,8 @@ combine everything into one polish and recheck once.
 ## Review result
 
 `essay review` returns no score. It returns `scoring_mode: model_judged`, seven
-dimensions, objective findings, a compact semantic review for project/task
-grounding, architecture tradeoffs, and the harmless-shortcoming conclusion,
-plus length and scoring guidance.
+dimensions, objective findings, a compact semantic review for the protected
+writing requirements, plus length and scoring guidance.
 
 Assign each dimension score yourself after completing the semantic review. Keep
 every deduction on the dimension it belongs to; never fill one dimension and
