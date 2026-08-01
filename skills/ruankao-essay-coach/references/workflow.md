@@ -52,39 +52,32 @@ Do not generate any essay unless this command succeeds. The authenticated
 response is the sole writing contract. Follow its project anchors, fact
 boundaries, target length, structure, writing requirements, generation
 instructions, and post-processing requirement. Do not reconstruct missing
-rules from memory, earlier Skill versions, local files, or general model
-knowledge.
+drafting rules from memory, earlier Skill versions, unlisted local files, or
+general model knowledge. The explicitly bundled Humanizer guide is used only
+in the later local final-language stage.
 
 After a successful response, the Node client stores the confirmed task,
 selected project reference, practice context, and returned `generation_id` in
 the private local data directory. It never stores the generated essay. The
 Server remains stateless.
 
-## Run the separate final-language stage
+## Run the local final-language stage
 
 Generate one complete internal draft from the authenticated generation brief.
-Do not show, summarize, or deliver it. Create the minimum next request with the
-returned `generation_id` and the complete draft as `essay`, then run:
-
-```bash
-node "$SKILL_DIR/scripts/ruankao_client.mjs" essay humanize-brief request.json
-```
-
-This protected call is a mandatory, separate workflow stage. It must appear
-after drafting and before `essay check`; never replace it with an internal
-promise to polish, guidance remembered from another run, or the generation
-brief. If it fails, stop without returning the draft or calling `essay check`.
-
-After it succeeds, read
-`progress_cues.before_final_language_pass`. Because it is marked `required`,
+Do not show, summarize, or deliver it. Only after the complete draft exists,
+read `progress_cues.before_final_language_pass`. Because it is marked `required`,
 send its `message` to the user exactly once before editing. Do not omit,
 paraphrase, or defer it until after editing. Outside this exact cue, do not
 describe the implementation or individual language rules, and do not post a
 second language-processing status update.
 
-Apply the complete authenticated `final_language_guide` once to the full
-essay. Treat `final_language_requirements` as the Ruankao-specific constraints
-that override any conflicting generic guidance.
+Resolve [humanizer-zh.md](humanizer-zh.md) inside the installed Skill and read
+it completely at this point, not during task discovery or drafting. Apply the
+complete local guide once to the full draft. Treat the authenticated
+`final_language_requirements` as Ruankao-specific constraints that override
+any conflicting generic guidance in the local guide. This file read is the
+mandatory, separate Humanizer stage; never replace it with an internal promise
+to polish or guidance remembered from another run.
 
 ## Check and deliver
 

@@ -1,0 +1,10 @@
+{
+  "name": "Humanizer-zh",
+  "repository": "https://github.com/op7418/Humanizer-zh",
+  "path": "SKILL.md",
+  "commit": "91f3d394db8419c20d67ebe22a96cf8fee0a404b",
+  "sha256": "e0edbdbc9008644263d5573fb59beac95794e188fd99c35012bfd79e9ae4beeb",
+  "license": "MIT",
+  "license_file": "references/humanizer-zh-license.txt",
+  "license_sha256": "aa00e74769e1b9d8e7fa7094dbfcca9b129a0ded6dce1cf4da050b99146d2fa7"
+}

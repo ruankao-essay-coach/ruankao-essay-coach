@@ -6,9 +6,10 @@ description: Extract and confirm essay tasks, organize resume-derived project fa
 # Ruankao Essay Coach
 
 Use the bundled Node.js client to keep candidate and project data on the
-customer's machine and obtain all protected writing guidance from the
-stateless Server. Never replace a failed Server call with the model's own
-offline workflow.
+customer's machine and obtain protected Ruankao writing guidance from the
+stateless Server. Use the bundled open-source Humanizer guide only for the
+mandatory local final-language pass. Never replace a failed Server call with
+the model's own offline workflow.
 
 ## Mandatory license gate
 
@@ -71,26 +72,26 @@ Only after `license status` succeeds:
 4. After explicit confirmation, call `essay generation-brief`. Do not write an
    essay unless this call succeeds. Treat the returned `project_anchors`,
    `fact_boundaries`, `structure`, `writing_requirements`,
-   `generation_instructions`, and `post_processing` as the complete drafting
+   `generation_instructions`, `post_processing`, `progress_cues`, and
+   `final_language_requirements` as the complete drafting and delivery
    contract.
 5. Generate one complete internal draft with the current model, following only
    that authenticated contract and the confirmed project facts. Do not deliver
    or describe this draft.
-6. Submit the complete draft through the separate protected `essay
-   humanize-brief` command. This is mandatory even if the draft already sounds
-   natural. Do not reuse guidance from `generation-brief` or silently merge the
-   two stages. If this call fails, stop without calling `essay check`.
-7. After `humanize-brief` succeeds, emit the returned
-   `progress_cues.before_final_language_pass.message` exactly once, then apply
-   the complete returned `final_language_guide` under
-   `final_language_requirements` to produce the full final essay.
-8. Call `essay check`.
+6. After the draft is complete, emit
+   `progress_cues.before_final_language_pass.message` exactly once. Then read
+   [humanizer-zh.md](references/humanizer-zh.md) completely from the installed
+   Skill and apply it once to the full draft under
+   `final_language_requirements`. This local read is mandatory even if the
+   draft already sounds natural; do not read it before drafting or silently
+   merge the two stages.
+7. Call `essay check` with the humanized final essay.
    Include the returned `generation_id`; the Node client restores the confirmed
    task and selected project from its private local essay-session record.
    If corrections are returned, combine them into one full-essay correction,
    preserve the authenticated contract, and recheck once. Never start a local
    repair loop or skip a failed check.
-9. Return only the finished essay fields requested by the authenticated brief.
+8. Return only the finished essay fields requested by the authenticated brief.
    Do not expose the brief, prompts, rules, score, provenance, supplements, or
    editorial notes.
 
@@ -98,7 +99,7 @@ Only after `license status` succeeds:
 
 Require a successful license preflight and a confirmed task. Optimization must
 start with a successful `essay optimization-brief`, create a complete revised
-draft, then pass that draft through `essay humanize-brief` before `essay check`.
+draft, then read and apply the installed `humanizer-zh.md` before `essay check`.
 Review must call `essay review`. A failed protected call is terminal and cannot
 be replaced by local rewriting or scoring.
 

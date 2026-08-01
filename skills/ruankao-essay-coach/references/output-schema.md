@@ -20,22 +20,23 @@ Important fields:
 - `structure`: five concise section targets and focus lists;
 - `writing_requirements`: authenticated constraints for the current essay;
 - `generation_instructions`: authenticated directions for drafting and polishing;
-- `post_processing.humanize_brief_required`: requires a separate protected
-  Humanizer stage after the complete draft and before objective checking.
+- `post_processing.local_humanizer_required`: requires a separate local
+  Humanizer stage after the complete draft and before objective checking;
+- `post_processing.guide_path`: path to the bundled guide relative to the Skill;
+- `progress_cues`: required, understated user-visible stage messages;
+- `final_language_requirements`: authenticated Ruankao constraints for the
+  local final-language pass.
 
-The generation response deliberately excludes the Humanizer guide. Draft the
-complete essay first, then call `essay humanize-brief` with the returned
-`generation_id` and complete draft.
+The generation response deliberately excludes the full Humanizer guide because
+that open-source file is installed locally with the Skill. Draft the complete
+essay first, then read the returned `guide_path` and apply it once.
 
-## Humanize brief
+## Local Humanizer pass
 
-Important fields:
-
-- `progress_cues`: required, understated user-visible stage messages; emit the
-  final-language cue exactly once immediately before that pass;
-- `final_language_guide`: the complete authenticated Humanizer-zh editing guide
-  used for one full-essay language pass;
-- `final_language_requirements`: authenticated directions for the last language pass.
+The bundled [humanizer-zh.md](humanizer-zh.md) is the complete pinned upstream
+guide. Read it only after the full draft exists. Its MIT license and pinned
+source metadata are stored beside it. Do not return its change summary or
+quality score; authenticated `final_language_requirements` take precedence.
 
 The response intentionally excludes internal rule, template, outline, strategy,
 scoring, and rule-version identifiers.
