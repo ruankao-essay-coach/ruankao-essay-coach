@@ -141,8 +141,17 @@ range, and `0` means the objective check and length passed.
 
 ## Complete
 
+After the objective check passes, read [final-language-pass.md](final-language-pass.md)
+and apply its bundled natural-writing rules once. Treat it as a constrained
+editorial pass: remove mechanical transitions and other obvious AI-writing
+patterns while preserving all confirmed facts, technical reasoning, the two
+core scoring techniques, the essay framework, and the target length. Do not
+turn this into another generation or repair loop, and do not depend on another
+installed skill.
+
 Return only the title, abstract, body, and conclusion. Do not append the brief,
-fact-source metadata, supplement notes, review process, or score.
+fact-source metadata, supplement notes, review process, humanization summary,
+quality score, or any other editorial commentary.
 
 ## Optional review
 

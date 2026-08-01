@@ -32,7 +32,8 @@ required. Local data lives under `~/.ruankao` unless
 5. Call `essay generation-brief`. Verify that `project_anchors` belongs to the selected project, then use the concise first-generation prompt. Keep the 300–330 / 400 / 400 / 1,000–1,200 / 300–400 essay framework while giving the model broad freedom over wording and paragraph flow.
 6. Before showing any draft, perform one silent whole-essay quality pass. Preserve the hard constraints: answer the task, keep confirmed facts consistent, stay within the requested length, naturally develop one or two architecture tradeoffs, and end with one harmless shortcoming plus its improvement. Never expose “架构权衡一/二” or “方案A/B/C” labels.
 7. Call `essay check` once for objective conflicts, exposed labels, exact repetition, and total length. If needed, combine all returned corrections into one whole-essay polish and recheck once. Do not start multi-round keyword repair loops.
-8. Return only the title, abstract, body, and conclusion. Do not append the brief, analysis, score, supplement list, or provenance note.
+8. Immediately before delivery, read [final-language-pass.md](references/final-language-pass.md) and apply its bundled natural-writing rules once as a constrained final editorial pass. Ruankao facts, technical reasoning, scoring techniques, structure, and length override stylistic edits.
+9. Return only the title, abstract, body, and conclusion. Do not append the brief, analysis, score, supplement list, provenance note, humanization summary, or quality score.
 
 Read [workflow.md](references/workflow.md) for request shapes and project
 selection details.
