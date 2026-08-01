@@ -92,7 +92,9 @@ precise-looking number.
 
 ## Final response
 
-By default return:
+Return exactly the fields the authenticated generation/optimization brief
+requests. When the brief does not specify return fields, fall back to this
+default:
 
 ```text
 论文标题

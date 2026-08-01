@@ -2,7 +2,7 @@
 
 ## Authorization first
 
-Run `license status` before every other workflow action. Missing, invalid,
+Run `license status` once, before any other workflow action. Missing, invalid,
 expired, device-limited, or unavailable authorization is terminal. Do not read
 resume contents or local profile/project records, create temporary files,
 extract or confirm a task, or provide any local fallback after failure.
@@ -45,7 +45,7 @@ confirmed `essay_task`, internal `project_profile_id`, and `practice_context`,
 then run:
 
 ```bash
-node "$SKILL_DIR/scripts/ruankao_client.mjs" essay generation-brief request.json
+node "<SKILL_DIR resolved during SKILL.md's license gate>/scripts/ruankao_client.mjs" essay generation-brief request.json
 ```
 
 Do not generate any essay unless this command succeeds. The authenticated
@@ -93,3 +93,26 @@ not append the brief, rules, prompts, fact-source metadata, supplement notes,
 review process, score, or editorial commentary.
 
 Call `essay review` only when the user requests diagnosis or training feedback.
+
+## Additional local commands
+
+Beyond the calls used in the default flow above, the client also exposes:
+
+- `profile delete`: remove the local candidate profile when the user asks to
+  reset or withdraw their saved profile.
+- `project get <project-id>`: read back one stored project's full local
+  record, e.g. to show it to the user before an edit.
+- `project update <project-id> <json-file>`: apply a user-confirmed edit to a
+  stored project (name, period, role, stack, results, ...). Only write fields
+  the user explicitly confirmed; never invent the edit.
+- `project delete <project-id>`: remove a stored project on explicit user
+  request. Confirm which project by name before deleting.
+- `project check <project-id>`: validate a stored project's completeness
+  without generating anything; use when the user asks whether a project has
+  enough material for a given topic.
+- `topic analyze <json-file>`: send a standalone topic for early
+  feasibility/requirement feedback before the user commits to project
+  selection or a full generation request.
+
+Each of these is still a protected command and follows the same terminal-gate
+and command-isolation rules as the rest of this file.

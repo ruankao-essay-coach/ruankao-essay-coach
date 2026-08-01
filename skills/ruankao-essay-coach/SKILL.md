@@ -9,10 +9,10 @@ description: 提取并确认软考系统架构设计师论文题目，整理从�
 
 ## 强制授权门槛
 
-将 `SKILL_DIR` 解析为本文件所在目录。在解析题目、读取附件、查看本地画像或项目档案、创建临时请求文件或提供写作方案之前，先运行：
+将 `SKILL_DIR` 解析为本文件所在目录的绝对路径，并在下文每一处出现 `$SKILL_DIR` 的地方，直接替换为这个绝对路径本身——`$SKILL_DIR` 只是占位符，不是环境变量，绝不能原样留在实际执行的命令行里。在解析题目、读取附件、查看本地画像或项目档案、创建临时请求文件或提供写作方案之前，先运行：
 
 ```bash
-node "$SKILL_DIR/scripts/ruankao_client.mjs" license status
+node "<替换为解析出的 SKILL_DIR 绝对路径>/scripts/ruankao_client.mjs" license status
 ```
 
 客户端读取 `RUANKAO_LICENSE_TOKEN`，默认服务地址为 `https://api.bindvault.me/ruankao/api/v1`。如果激活码缺失、无效、过期、超过设备限制，或授权服务不可用，立即停止当前流程；只返回激活错误和重试命令。不得读取本地资料、推断项目、创建请求文件、展示确认方案、生成或优化论文，也不得使用内置知识兜底。
@@ -23,7 +23,7 @@ node "$SKILL_DIR/scripts/ruankao_client.mjs" license status
 
 ## 客户端命令隔离
 
-每次调用 `ruankao_client.mjs` 都必须作为独立的 Shell 命令运行，以便 Codex 正确应用已批准的 Node.js 网络权限。命令必须以 `node "$SKILL_DIR/scripts/ruankao_client.mjs"` 开始，或者先设置必要的 `RUANKAO_LICENSE_TOKEN=...`，随后立即执行该 Node.js 命令。
+每次调用 `ruankao_client.mjs` 都必须作为独立的 Shell 命令运行，以便宿主环境正确应用已批准的 Node.js 网络权限前缀。命令必须以 `node "<已解析的 SKILL_DIR 绝对路径>/scripts/ruankao_client.mjs"` 开始，或者先设置必要的 `RUANKAO_LICENSE_TOKEN=...`，随后立即执行该 Node.js 命令。
 
 不得在前面添加 `sed`、`jq`、`cat`、`echo` 或其他命令，也不得使用 `&&`、`;`、管道、命令替换或重定向与其他操作拼接。
 
